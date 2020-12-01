@@ -2,7 +2,6 @@
   "dataset_name": "MNIST",
   "dl_kwargs": {
     "batch_size": 32,
-    "num_workers": 4,
-    "shuffle": true
+    "num_workers": 4
   }
 }

@@ -38,10 +38,10 @@ class MNISTDataModule(pl.LightningDataModule):
             self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
 
     def train_dataloader(self):
-        return DataLoader(self.mnist_train, **self.dl_kwargs)
+        return DataLoader(self.mnist_train, **self.dl_kwargs, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(self.mnist_val, **self.dl_kwargs)
+        return DataLoader(self.mnist_val, **self.dl_kwargs, shuffle=False)
 
     def test_dataloader(self):
-        return DataLoader(self.mnist_test, **self.dl_kwargs)
+        return DataLoader(self.mnist_test, **self.dl_kwargs, shuffle=False)

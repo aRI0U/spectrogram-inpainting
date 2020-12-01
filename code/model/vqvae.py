@@ -31,12 +31,12 @@ class VQVAE(pl.LightningModule):
 
         Parameters
         ----------
-        x (torch.FloatTensor): input, shape (B, ...)
+        x (torch.FloatTensor): input, shape (B, C, H, W)
 
         Returns
         -------
-        x_hat (torch.FloatTensor): reconstructed input, shape (B,
-        codes (torch.LongTensor): corresponding codes, shape (B, )
+        x_hat (torch.FloatTensor): reconstructed input, shape (B, C, H, W)
+        codes (torch.LongTensor): corresponding codes, shape (B)
         q_loss (torch.FloatTensor): quantization loss, shape (1)
         """
         # 1. encode
@@ -51,17 +51,35 @@ class VQVAE(pl.LightningModule):
         return x_hat, codes, q_loss
 
     def training_step(self, batch, batch_idx):
-        x_hat, codes, q_loss = self(batch)
+        x, _ = batch
+        x_hat, codes, q_loss = self(x)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, batch)
+        rec_loss = F.mse_loss(x_hat, x)
         loss = rec_loss + q_loss
 
         # logging
-        self.log('reconstruction loss', rec_loss)
-        self.log('quantization loss', q_loss)
+        self.log('reconstruction loss_train', rec_loss)
+        self.log('quantization loss_train', q_loss)
 
         return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, _ = batch
+        x_hat, codes, q_loss = self(x)
+
+        # compute loss
+        rec_loss = F.mse_loss(x_hat, x)
+        loss = rec_loss + q_loss
+
+        # logging
+        self.log('reconstruction loss_val', rec_loss)
+        self.log('quantization loss_val', q_loss)
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        return self.validation_step(batch, batch_idx)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)

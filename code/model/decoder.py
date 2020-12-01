@@ -12,8 +12,8 @@ class Decoder(nn.Module):
         """
         super(Decoder, self).__init__()
 
-        self.conv1 = nn.ConvTranspose2d(in_channels, in_channels//2, kernel_size=3)
-        self.conv2 = nn.ConvTranspose2d(in_channels//2, out_channels, kernel_size=3)
+        self.conv1 = nn.ConvTranspose2d(in_channels, in_channels//2, kernel_size=5)
+        self.conv2 = nn.ConvTranspose2d(in_channels//2, out_channels, kernel_size=5)
 
         self.activation = nn.ReLU()
 

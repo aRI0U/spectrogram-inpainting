@@ -9,7 +9,7 @@ from utils.parser import Parser
 parser = Parser()
 args = parser.parse_args()
 
-trainer = pl.Trainer()
+trainer = pl.Trainer(max_epochs=10)
 
 dm = None
 data_dir = Path('datasets') / args.dataset_name
@@ -23,7 +23,7 @@ if args.dataset_name == "MNIST":
 else:
     raise NotImplementedError("No implementation is provided for this dataset")
 
-model = VQVAE(3, 16, 10, 0.15)
+model = VQVAE(1, 8, 10, 0.15)
 
 trainer.fit(model, dm)
-
+trainer.test(datamodule=dm)

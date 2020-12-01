@@ -12,8 +12,8 @@ class Encoder(nn.Module):
         """
         super(Encoder, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels, in_channels//2, kernel_size=3)
-        self.conv2 = nn.Conv2d(in_channels//2, out_channels, kernel_size=3)
+        self.conv1 = nn.Conv2d(in_channels, 2*in_channels, kernel_size=5)
+        self.conv2 = nn.Conv2d(2*in_channels, out_channels, kernel_size=5)
 
         self.activation = nn.ReLU()
 

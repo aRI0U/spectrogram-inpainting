@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class VectorQuantizer(nn.Module):
@@ -37,7 +38,8 @@ class VectorQuantizer(nn.Module):
         torch.LongTensor: indices of quantized inputs in the codebook, shape (*)
         torch.FloatTensor: quantization loss
         """
-        # flatten inputs
+        # flatten inputs: B, C, H, W -> B*H*W, C
+        inputs = inputs.permute(0, 2, 3, 1).contiguous()
         inputs_shape = inputs.size()
         flat_inputs = inputs.view(-1, self.codewords_dim)
 
@@ -47,10 +49,15 @@ class VectorQuantizer(nn.Module):
             2
         ).sum(2)
 
-        encoding_indices = torch.argmin(distances, dim=1).unsqueeze(1)
+        encoding_indices = torch.argmin(distances, dim=1)
 
-        # quantized[i, j] = self.codewords[encoding_indices[i,j], j]
-        quantized = torch.gather(self.codewords, 0, encoding_indices).view(inputs.shape)
+        # quantized[i,j] = self.codewords[encoding_indices[i,j], j]
+        quantized = torch.gather(
+            self.codewords,
+            0,
+            encoding_indices.unsqueeze(1).expand(-1, self.codewords_dim)
+        ).view(inputs_shape)
+        encoding_indices = encoding_indices.view(inputs_shape[:-1])
 
         # quantization loss
         quantizing_loss = F.mse_loss(quantized.detach(), inputs)
@@ -60,8 +67,4 @@ class VectorQuantizer(nn.Module):
         # magic trick to copy gradients from inputs
         quantized = inputs + (quantized - inputs).detach()
 
-        return quantized, encoding_indices, loss
-
-
-
-
+        return quantized.permute(0, 3, 1, 2), encoding_indices, loss
