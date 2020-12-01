@@ -2,13 +2,44 @@
 
 This project has been realized for the Musical Machine Learning course of ATIAM master, supervised by [Philippe Esling](https://esling.github.io/), [Théis Bazin](https://csl.sony.fr/team/theis-bazin/) and [Constance Douwes](https://www.ircam.fr/person/douwes-constance/).
 
+
+
+## Prerequisites
+
+- Python 3.8 (may work on older versions of Python 3)
+
+
+
 ## Setup
+
+1. Clone this repository
+
+   ```bash
+   git clone https://github.com/aRI0U/spectrogram-inpainting.git
+   ```
+   
+2. Install all requirements
+
+   ```bash
+   cd spectrogram-inpainting/code
+   pip install -r requirements.txt
+   ```
+
+3. That's all folks!
 
 
 
 ## Usage
 
+In order to train a model on [MNIST](http://yann.lecun.com/exdb/mnist/), just type the following:
+
+```bash
+python main.py -c configs/mnist.json
+```
+
 
 
 ## TODOs
 
+- Visualization on MNIST
+- "real" project
