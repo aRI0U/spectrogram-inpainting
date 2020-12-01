@@ -1,0 +1,4 @@
+code/.idea
+code/datasets
+code/lightning_logs
+**/*.pyc
