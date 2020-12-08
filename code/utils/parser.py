@@ -50,6 +50,11 @@ class Parser:
         dataset.add_argument('--dl_kwargs', type=dict,
                              help='dataloader keyword arguments (batch size, num_workers, etc.)')
 
+        network.add_argument('--latent_dim', type=int, default=16,
+                             help='dimension of the latent space')
+        network.add_argument('--num_codewords', type=int, default=10,
+                             help='number of codewords used as discrete embeddings')
+
         hparams.add_argument('--commitment_cost', type=float, default=0.15,
                              help='weight for the commitment cost')
 
@@ -57,7 +62,7 @@ class Parser:
 
         # CONDITIONAL ARGUMENTS
         if args.train:
-            train = parser.add_argument_group('Training options')
+            train = parser.add_argument_group('training options')
 
             train.add_argument('--max_epochs', type=int, default=50,
                                help='number of epochs of training')
@@ -65,7 +70,7 @@ class Parser:
                                help='frequency checkpoints and results are saved')
 
         else:
-            test = parser.add_argument_group('Testing options')
+            test = parser.add_argument_group('testing options')
 
         if args.load_model and (args.load_model / 'config.json').exists():
             args.config = args.load_model / 'config.json'

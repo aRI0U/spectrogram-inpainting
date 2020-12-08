@@ -24,7 +24,12 @@ else:
     raise NotImplementedError("No implementation is provided for this dataset")
 
 # define model
-model = VQVAE(1, 8, 10, args.commitment_cost)
+model = VQVAE(
+    1,
+    args.latent_dim,
+    args.num_codewords,
+    args.commitment_cost
+)
 
 # eventually load previously trained model
 logs_path = Path('logs')
@@ -35,7 +40,7 @@ else:
 
 # %% CALLBACKS
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
-    monitor='Loss [val]',
+    monitor='Loss/Validation',
     dirpath=logs_path / exp_name,
     filename='checkpoint_{epoch:02d}',
     mode='min'

@@ -60,9 +60,9 @@ class VQVAE(pl.LightningModule):
         loss = rec_loss + q_loss
 
         # logging
-        self.log('Reconstruction loss [train]', rec_loss)
-        self.log('Quantization loss [train]', q_loss)
-        self.log('Loss [train]', loss)
+        self.log('Reconstruction loss/Training', rec_loss)
+        self.log('Quantization loss/Training', q_loss)
+        self.log('Loss/Training', loss)
 
         return loss
 
@@ -75,19 +75,27 @@ class VQVAE(pl.LightningModule):
         loss = rec_loss + q_loss
 
         # logging
-        self.log('Reconstruction loss [val]', rec_loss)
-        self.log('Quantization loss [val]', q_loss)
-        self.log('Loss [val]', loss)
+        self.log('Reconstruction loss/Validation', rec_loss)
+        self.log('Quantization loss/Validation', q_loss)
+        self.log('Loss/Validation', loss)
 
         return loss
+
+    def training_epoch_end(self, outputs):
+        x, _ = next(iter(self.train_dataloader()))
+        x_hat, _, _ = self(x)
+
+        # display images in tensorboard
+        self.logger.experiment.add_image("Originals/Training", make_grid(x.cpu().data), self.current_epoch)
+        self.logger.experiment.add_image("Reconstructions/Training", make_grid(x_hat.cpu().data), self.current_epoch)
 
     def validation_epoch_end(self, outputs):
         x, _ = next(iter(self.val_dataloader()))
         x_hat, _, _ = self(x)
 
         # display images in tensorboard
-        self.logger.experiment.add_image("Originals", make_grid(x.cpu().data), self.current_epoch)
-        self.logger.experiment.add_image("Reconstructions", make_grid(x_hat.cpu().data), self.current_epoch)
+        self.logger.experiment.add_image("Originals/Validation", make_grid(x.cpu().data), self.current_epoch)
+        self.logger.experiment.add_image("Reconstructions/Validation", make_grid(x_hat.cpu().data), self.current_epoch)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
