@@ -37,9 +37,18 @@ In order to train a model on [MNIST](http://yann.lecun.com/exdb/mnist/), just ty
 python main.py -c configs/mnist.json
 ```
 
+Other options can be modified through configuration files or command-line arguments. For en exhaustive description of these options, type `python main.py --help`.
 
+### Visualization
+
+Models can be inspected using [TensorBoard](https://pytorch.org/tutorials/intermediate/tensorboard_tutorial.html). In order to inspect models, type:
+
+```bash
+tensorboard --logdir logs
+```
+
+and open http://localhost:6006 in a web browser.
 
 ## TODOs
 
-- Visualization on MNIST
 - "real" project

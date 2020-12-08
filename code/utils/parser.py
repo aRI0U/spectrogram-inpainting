@@ -50,13 +50,16 @@ class Parser:
         dataset.add_argument('--dl_kwargs', type=dict,
                              help='dataloader keyword arguments (batch size, num_workers, etc.)')
 
+        hparams.add_argument('--commitment_cost', type=float, default=0.15,
+                             help='weight for the commitment cost')
+
         args.train = not args.test
 
         # CONDITIONAL ARGUMENTS
         if args.train:
             train = parser.add_argument_group('Training options')
 
-            train.add_argument('--epochs', type=int, default=50,
+            train.add_argument('--max_epochs', type=int, default=50,
                                help='number of epochs of training')
             train.add_argument('--save_freq', type=int, default=5,
                                help='frequency checkpoints and results are saved')

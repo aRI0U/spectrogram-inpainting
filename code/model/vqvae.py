@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from torchvision.utils import make_grid
 
 import pytorch_lightning as pl
 
@@ -59,8 +60,9 @@ class VQVAE(pl.LightningModule):
         loss = rec_loss + q_loss
 
         # logging
-        self.log('reconstruction loss_train', rec_loss)
-        self.log('quantization loss_train', q_loss)
+        self.log('Reconstruction loss [train]', rec_loss)
+        self.log('Quantization loss [train]', q_loss)
+        self.log('Loss [train]', loss)
 
         return loss
 
@@ -73,13 +75,19 @@ class VQVAE(pl.LightningModule):
         loss = rec_loss + q_loss
 
         # logging
-        self.log('reconstruction loss_val', rec_loss)
-        self.log('quantization loss_val', q_loss)
+        self.log('Reconstruction loss [val]', rec_loss)
+        self.log('Quantization loss [val]', q_loss)
+        self.log('Loss [val]', loss)
 
         return loss
 
-    def test_step(self, batch, batch_idx):
-        return self.validation_step(batch, batch_idx)
+    def validation_epoch_end(self, outputs):
+        x, _ = next(iter(self.val_dataloader()))
+        x_hat, _, _ = self(x)
+
+        # display images in tensorboard
+        self.logger.experiment.add_image("Originals", make_grid(x.cpu().data), self.current_epoch)
+        self.logger.experiment.add_image("Reconstructions", make_grid(x_hat.cpu().data), self.current_epoch)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
