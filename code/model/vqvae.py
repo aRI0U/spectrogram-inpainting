@@ -10,7 +10,12 @@ from model.quantizer import VectorQuantizer
 
 
 class VQVAE(pl.LightningModule):
-    def __init__(self, x_dim, z_dim, num_codewords, commitment_cost):
+    def __init__(self,
+                 x_dim,
+                 z_dim,
+                 num_codewords,
+                 commitment_cost,
+                 lr=1e-3):
         r"""
 
         Parameters
@@ -19,13 +24,19 @@ class VQVAE(pl.LightningModule):
         z_dim (int): dimension of the latent space
         num_codewords (int): number of codewords
         commitment_cost (float): scaling for commitment loss
+        lr (float):
         """
         super(VQVAE, self).__init__()
+
+        self.save_hyperparameters()
 
         self.encoder = Encoder(x_dim, z_dim)
         self.decoder = Decoder(z_dim, x_dim)
 
         self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost)
+
+        # for graph logging
+        self.example_input_array = torch.randn(1, x_dim, 32, 32)
 
     def forward(self, x):
         r"""Forward pass of VQ-VAE
@@ -81,6 +92,10 @@ class VQVAE(pl.LightningModule):
 
         return loss
 
+    def on_fit_start(self):
+        metric_placeholder = {'val_loss': float('inf')}
+        self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
+
     def training_epoch_end(self, outputs):
         x, _ = next(iter(self.train_dataloader()))
         x_hat, _, _ = self(x)
@@ -97,6 +112,10 @@ class VQVAE(pl.LightningModule):
         self.logger.experiment.add_image("Originals/Validation", make_grid(x.cpu().data), self.current_epoch)
         self.logger.experiment.add_image("Reconstructions/Validation", make_grid(x_hat.cpu().data), self.current_epoch)
 
+        # log hyperparameters
+        metrics_log = {'val_loss': torch.stack(outputs).mean()}
+        self.logger.log_hyperparams(self.hparams, metrics=metrics_log)
+
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
         return optimizer

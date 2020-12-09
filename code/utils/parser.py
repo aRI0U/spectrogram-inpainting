@@ -50,13 +50,14 @@ class Parser:
         dataset.add_argument('--dl_kwargs', type=dict,
                              help='dataloader keyword arguments (batch size, num_workers, etc.)')
 
-        network.add_argument('--latent_dim', type=int, default=16,
-                             help='dimension of the latent space')
-        network.add_argument('--num_codewords', type=int, default=10,
-                             help='number of codewords used as discrete embeddings')
-
+        hparams.add_argument('--adam', type=dict, default={},
+                             help='hyperparameters of the main optimizer')
         hparams.add_argument('--commitment_cost', type=float, default=0.15,
                              help='weight for the commitment cost')
+        hparams.add_argument('--latent_dim', type=int, default=16,
+                             help='dimension of the latent space')
+        hparams.add_argument('--num_codewords', type=int, default=10,
+                             help='number of codewords used as discrete embeddings')
 
         args.train = not args.test
 
