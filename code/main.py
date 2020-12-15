@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytorch_lightning as pl
 
+import datamodules
 from model.vqvae import VQVAE
 from utils.parser import Parser
 from utils.progress import ProgressBar
@@ -18,9 +19,10 @@ data_dir = Path('datasets') / args.dataset_name
 data_dir.mkdir(exist_ok=True, parents=True)
 
 if args.dataset_name == "MNIST":
-    from data.mnist import MNISTDataModule
+    dm = datamodules.MNISTDataModule(data_dir, **args.dl_kwargs)
 
-    dm = MNISTDataModule(data_dir, **args.dl_kwargs)
+elif args.dataset_name == "NSynth":
+    dm = datamodules.NSynthDataModule(data_dir, **args.dl_kwargs)
 
 else:
     raise NotImplementedError("No implementation is provided for this dataset")

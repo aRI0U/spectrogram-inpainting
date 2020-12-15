@@ -1,0 +1,10 @@
+{
+  "dataset_name": "NSynth",
+  "dl_kwargs": {
+    "batch_size": 32,
+    "num_workers": 4
+  },
+  "adam": {
+    "lr": 1e-3
+  }
+}

@@ -23,7 +23,7 @@ class NSynthDataModule(pl.LightningDataModule):
         r"""Download and extract the NSynth dataset in the folder ./datasets if it is not already downloaded."""
         # TODO: check if dataset already downloaded
         print("WARNING: NSynth dataset is quite huge (voir quelle taille ça fait).", end=" ")
-        if input("Download anyway? [yes/no]") in "yes":
+        if input("Download anyway? [yes/no] ") in "yes":
             # TODO: download and extract the dataset
             pass
 

@@ -4,8 +4,8 @@ from torchvision.utils import make_grid
 
 import pytorch_lightning as pl
 
-from model.encoder import Encoder
-from model.decoder import Decoder
+from model.encoders.mnist_encoder import MNISTEncoder
+from model.decoders.mnist_decoder import MNISTDecoder
 from model.quantizer import VectorQuantizer
 
 
@@ -30,8 +30,8 @@ class VQVAE(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        self.encoder = Encoder(x_dim, z_dim)
-        self.decoder = Decoder(z_dim, x_dim)
+        self.encoder = MNISTEncoder(x_dim, z_dim)
+        self.decoder = MNISTDecoder(z_dim, x_dim)
 
         self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost)
 

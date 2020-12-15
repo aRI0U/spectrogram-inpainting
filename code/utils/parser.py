@@ -45,7 +45,7 @@ class Parser:
         # MAIN ARGUMENTS
 
         args, _ = cli_parser.parse_known_args()
-        dataset.add_argument('--dataset_name', type=str, choices=['MNIST'], default='MNIST',
+        dataset.add_argument('--dataset_name', type=str, choices=['MNIST', 'NSynth'], default='MNIST',
                              help='name of the dataset used')
         dataset.add_argument('--dl_kwargs', type=dict,
                              help='dataloader keyword arguments (batch size, num_workers, etc.)')
@@ -117,7 +117,7 @@ class Parser:
         r"""Save the parsed options
         """
         path = Path(path)
-        path.mkdir(exist_ok=True)
+        path.mkdir(parents=True, exist_ok=True)
         args_dict = {}
 
         for group in self.groups_to_save:
