@@ -50,6 +50,9 @@ class Parser:
         dataset.add_argument('--dl_kwargs', type=dict,
                              help='dataloader keyword arguments (batch size, num_workers, etc.)')
 
+        network.add_argument('--architecture', type=str, choices=['mnist'], default='mnist',
+                             help='architecture used for encoder and decoder')
+
         hparams.add_argument('--adam', type=dict, default={},
                              help='hyperparameters of the main optimizer')
         hparams.add_argument('--commitment_cost', type=float, default=0.15,

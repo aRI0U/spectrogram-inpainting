@@ -30,6 +30,7 @@ else:
 # %% MODEL
 # define model
 model = VQVAE(
+    args.architecture,
     1,
     args.latent_dim,
     args.num_codewords,

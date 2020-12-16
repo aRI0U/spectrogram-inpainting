@@ -4,13 +4,14 @@ from torchvision.utils import make_grid
 
 import pytorch_lightning as pl
 
-from model.encoders.mnist_encoder import MNISTEncoder
-from model.decoders.mnist_decoder import MNISTDecoder
+import model.encoders as encoders
+import model.decoders as decoders
 from model.quantizer import VectorQuantizer
 
 
 class VQVAE(pl.LightningModule):
     def __init__(self,
+                 architecture,
                  x_dim,
                  z_dim,
                  num_codewords,
@@ -20,6 +21,7 @@ class VQVAE(pl.LightningModule):
 
         Parameters
         ----------
+        architecture (str): architecture for the encoder/decoder
         x_dim (int): dimension of the input/output space
         z_dim (int): dimension of the latent space
         num_codewords (int): number of codewords
@@ -30,8 +32,11 @@ class VQVAE(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        self.encoder = MNISTEncoder(x_dim, z_dim)
-        self.decoder = MNISTDecoder(z_dim, x_dim)
+        if architecture == "mnist":
+            self.encoder = encoders.MNISTEncoder(x_dim, z_dim)
+            self.decoder = decoders.MNISTDecoder(z_dim, x_dim)
+        else:
+            raise NotImplementedError("The following architecture is not implemented yet: " + architecture)
 
         self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost)
 
