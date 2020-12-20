@@ -49,6 +49,8 @@ class Parser:
                              help='name of the dataset used')
         dataset.add_argument('--dl_kwargs', type=dict,
                              help='dataloader keyword arguments (batch size, num_workers, etc.)')
+        dataset.add_argument('--input_dim', type=int, default=1,
+                             help='number of channels of the encoder input')
 
         network.add_argument('--architecture', type=str, choices=['mnist'], default='mnist',
                              help='architecture used for encoder and decoder')

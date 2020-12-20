@@ -7,8 +7,8 @@ class MNISTEncoder(nn.Module):
 
         Parameters
         ----------
-        in_channels
-        out_channels
+        in_channels (int)
+        out_channels (int)
         """
         super(MNISTEncoder, self).__init__()
 
@@ -22,11 +22,11 @@ class MNISTEncoder(nn.Module):
 
         Parameters
         ----------
-        inputs
+        inputs (torch.FloatTensor): batch of images, shape (batch_size, in_channels, height, width)
 
         Returns
         -------
-
+        torch.FloatTensor: encoded images, shape (batch_size, out_channels, new_height, new_width)
         """
         x = self.conv1(inputs)
         x = self.activation(x)

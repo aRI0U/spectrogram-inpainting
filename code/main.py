@@ -4,7 +4,7 @@ from pathlib import Path
 import pytorch_lightning as pl
 
 import datamodules
-from model.vqvae import VQVAE
+import model.vqvae as vqvae
 from utils.parser import Parser
 from utils.progress import ProgressBar
 
@@ -25,18 +25,23 @@ elif args.dataset_name == "NSynth":
     dm = datamodules.NSynthDataModule(data_dir, **args.dl_kwargs)
 
 else:
-    raise NotImplementedError("No implementation is provided for this dataset")
+    raise NotImplementedError(f"No implementation is provided for this dataset: {args.dataset_name}")
 
 # %% MODEL
 # define model
-model = VQVAE(
-    args.architecture,
-    1,
-    args.latent_dim,
-    args.num_codewords,
-    args.commitment_cost,
-    **args.adam
-)
+model = None
+
+if args.architecture == 'mnist':
+    model = vqvae.MNISTVQVAE(
+        args.latent_dim,
+        args.num_codewords,
+        args.commitment_cost,
+        **args.adam
+    )
+else:
+    model = vqvae.NSynthVQVAE(
+
+    )
 
 # eventually load previously trained model
 logs_path = Path('logs')
