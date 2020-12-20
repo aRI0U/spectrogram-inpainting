@@ -40,7 +40,13 @@ if args.architecture == 'mnist':
     )
 else:
     model = vqvae.NSynthVQVAE(
-
+        args.architecture,
+        args.num_frequency_bins,
+        args.num_timesteps,
+        args.z_dim,
+        args.num_codewords,
+        args.commitment_cost,
+        **args.adam
     )
 
 # eventually load previously trained model

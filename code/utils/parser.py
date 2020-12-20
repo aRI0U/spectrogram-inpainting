@@ -54,6 +54,10 @@ class Parser:
 
         network.add_argument('--architecture', type=str, choices=['mnist'], default='mnist',
                              help='architecture used for encoder and decoder')
+        network.add_argument('--ema', action='store_true',
+                             help='use Exponential Moving Averages for updating latent embeddings')
+        network.add_argument('--restarts', action='store_true',
+                             help='resample latent vectors when they are not used enough')
 
         hparams.add_argument('--adam', type=dict, default={},
                              help='hyperparameters of the main optimizer')
@@ -63,6 +67,10 @@ class Parser:
                              help='dimension of the latent space')
         hparams.add_argument('--num_codewords', type=int, default=10,
                              help='number of codewords used as discrete embeddings')
+        hparams.add_argument('--num_frequency_bins', type=int, default=128,
+                             help='number of frequency bins for STFT')
+        hparams.add_argument('--num_timesteps', type=int, default=2048,
+                             help='number of timesteps per audio sample')
 
         args.train = not args.test
 

@@ -60,9 +60,15 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         metric_placeholder = {'val_loss': float('inf')}
         self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
 
-    def plot_codebook_usage(self, codes):
+    def plot_codebook_usage(self, codes, training=False):
         r"""Computes the histogram of codebook usage and displays it to TensorBoard"""
-        pass
+        step = "Training" if training else "Validation"
+        self.logger.experiment.add_histogram(
+            f"Codebook usage/{step}",
+            codes.view(-1).cpu(),
+            self.current_epoch,
+            bins='auto'
+        )
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)

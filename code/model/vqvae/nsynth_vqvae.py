@@ -69,19 +69,21 @@ class NSynthVQVAE(BaseVQVAE):
 
     def training_epoch_end(self, outputs):
         x, _ = next(iter(self.train_dataloader()))
-        x_hat, _, _ = self(x)
+        x_hat, codes, _ = self(x)
 
         # display images in tensorboard
         self.logger.experiment.add_image("Originals/Training", x[0].cpu().data, self.current_epoch)
         self.logger.experiment.add_image("Reconstructions/Training", x_hat[0].cpu().data, self.current_epoch)
+        self.plot_codebook_usage(codes, training=True)
 
     def validation_epoch_end(self, outputs):
         x, _ = next(iter(self.val_dataloader()))
-        x_hat, _, _ = self(x)
+        x_hat, codes, _ = self(x)
 
         # display images in tensorboard
         self.logger.experiment.add_image("Originals/Validation", x[0].cpu().data, self.current_epoch)
         self.logger.experiment.add_image("Reconstructions/Validation", x_hat[0].cpu().data, self.current_epoch)
+        self.plot_codebook_usage(codes, training=False)
 
         # log hyperparameters
         metrics_log = {'val_loss': torch.stack(outputs).mean()}

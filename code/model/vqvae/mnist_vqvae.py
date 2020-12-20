@@ -61,19 +61,21 @@ class MNISTVQVAE(BaseVQVAE):
 
     def training_epoch_end(self, outputs):
         x, _ = next(iter(self.train_dataloader()))
-        x_hat, _, _ = self(x)
+        x_hat, codes, _ = self(x)
 
         # display images in tensorboard
         self.logger.experiment.add_image("Originals/Training", make_grid(x.cpu().data), self.current_epoch)
         self.logger.experiment.add_image("Reconstructions/Training", make_grid(x_hat.cpu().data), self.current_epoch)
+        self.plot_codebook_usage(codes, training=True)
 
     def validation_epoch_end(self, outputs):
         x, _ = next(iter(self.val_dataloader()))
-        x_hat, _, _ = self(x)
+        x_hat, codes, _ = self(x)
 
         # display images in tensorboard
         self.logger.experiment.add_image("Originals/Validation", make_grid(x.cpu().data), self.current_epoch)
         self.logger.experiment.add_image("Reconstructions/Validation", make_grid(x_hat.cpu().data), self.current_epoch)
+        self.plot_codebook_usage(codes, training=False)
 
         # log hyperparameters
         metrics_log = {'val_loss': torch.stack(outputs).mean()}
