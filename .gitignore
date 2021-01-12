@@ -2,3 +2,4 @@ code/.idea
 code/datasets
 code/logs
 **/*.pyc
+**/*.DS_Store
