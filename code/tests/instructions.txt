@@ -1,0 +1,5 @@
+For complete test run:
+
+In folder spectrogram-inpainting/code, run:
+
+python -m unittest discover -s tests
