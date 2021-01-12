@@ -67,8 +67,36 @@ class NSynthVQVAE(BaseVQVAE):
 
         return x_hat, codes, q_loss
 
+    def training_step(self, batch, batch_idx):
+        x_hat, codes, q_loss = self(batch)
+
+        # compute loss
+        rec_loss = F.mse_loss(x_hat, x)
+        loss = rec_loss + q_loss
+
+        # logging
+        self.log('Reconstruction loss/Training', rec_loss)
+        self.log('Quantization loss/Training', q_loss)
+        self.log('Loss/Training', loss)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x_hat, codes, q_loss = self(batch)
+
+        # compute loss
+        rec_loss = F.mse_loss(x_hat, x)
+        loss = rec_loss + q_loss
+
+        # logging
+        self.log('Reconstruction loss/Validation', rec_loss)
+        self.log('Quantization loss/Validation', q_loss)
+        self.log('Loss/Validation', loss)
+
+        return loss
+
     def training_epoch_end(self, outputs):
-        x, _ = next(iter(self.train_dataloader()))
+        x = next(iter(self.train_dataloader()))
         x_hat, codes, _ = self(x)
 
         # display images in tensorboard
@@ -77,7 +105,7 @@ class NSynthVQVAE(BaseVQVAE):
         self.plot_codebook_usage(codes, training=True)
 
     def validation_epoch_end(self, outputs):
-        x, _ = next(iter(self.val_dataloader()))
+        x = next(iter(self.val_dataloader()))
         x_hat, codes, _ = self(x)
 
         # display images in tensorboard
