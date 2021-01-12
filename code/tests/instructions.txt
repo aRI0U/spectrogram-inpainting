@@ -1,5 +1,10 @@
-For complete test run:
-
+1) Complete test run:
 In folder spectrogram-inpainting/code, run:
 
 python -m unittest discover -s tests
+
+
+2) Run the tests in a specific file:
+In folder spectrogram-inpainting/code, run:
+
+python -m unittest tests/test_filename.py
