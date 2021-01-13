@@ -40,7 +40,7 @@ class NSynthVQVAE(BaseVQVAE):
 
         self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost)
 
-        self.example_input_array = torch.randn(1, num_frequency_bins, num_timesteps)
+        self.example_input_array = torch.randn(1, 1, num_frequency_bins, num_timesteps)
 
     def forward(self, x):
         r"""Forward pass of VQ-VAE
