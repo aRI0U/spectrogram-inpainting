@@ -47,7 +47,7 @@ class NSynthDataModule(pl.LightningDataModule):
             return
 
         # ask which subsets should be downloaded
-        print("WARNING: NSynth dataset is quite huge (almost 30 GB).", end=" ")
+        print("WARNING: NSynth dataset is quite huge (almost 2 GB).", end=" ")
         subsets_to_dl = input(f"Which subset(s) do you want to download? [{'/'.join(ALL_SUBSETS)}] ").split(' ')
 
         for set in subsets_to_dl:
