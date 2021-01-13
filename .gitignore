@@ -3,3 +3,4 @@ code/datasets
 code/logs
 **/*.pyc
 **/.ipynb_checkpoints
+**/*.DS_Store
