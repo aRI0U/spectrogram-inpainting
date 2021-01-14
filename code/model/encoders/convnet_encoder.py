@@ -97,7 +97,7 @@ class ConvNetEncoder(nn.Module):
         self.dense = nn.Sequential(*dense_sequence)
 
     def forward(self, inputs):
-
+        print(inputs.shape)
         # format for convolution
         x = inputs.view(-1, self._channels, self._height, self._width)
 

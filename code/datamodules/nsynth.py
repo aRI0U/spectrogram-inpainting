@@ -30,7 +30,7 @@ class NSynthDataModule(pl.LightningDataModule):
     def setup(self, stage=None):
         # the train dataset is not used because of its size. 
         if stage == 'fit' or stage is None:
-            self.nsynth_train = NSynthDataset(self.data_dir / "val") 
+            self.nsynth_train = NSynthDataset(self.data_dir / "valid")
             self.nsynth_val = NSynthDataset(self.data_dir / "test") 
 
         if stage == 'test' or stage is None:

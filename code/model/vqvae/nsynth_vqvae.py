@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 import model.encoders as encoders
 import model.decoders as decoders
@@ -35,6 +36,9 @@ class NSynthVQVAE(BaseVQVAE):
         if architecture == 'basic':
             self.encoder = encoders.BasicEncoder(num_frequency_bins, num_timesteps, z_dim)
             self.decoder = decoders.BasicDecoder(num_frequency_bins, num_timesteps, z_dim)
+        elif architecture == 'convnet':
+            self.encoder = encoders.ConvNetEncoder()
+            self.decoder = decoders.ConvNetDecoder()
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
 
@@ -71,7 +75,7 @@ class NSynthVQVAE(BaseVQVAE):
         x_hat, codes, q_loss = self(batch)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, x)
+        rec_loss = F.mse_loss(x_hat, batch)
         loss = rec_loss + q_loss
 
         # logging
@@ -85,7 +89,7 @@ class NSynthVQVAE(BaseVQVAE):
         x_hat, codes, q_loss = self(batch)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, x)
+        rec_loss = F.mse_loss(x_hat, batch)
         loss = rec_loss + q_loss
 
         # logging
