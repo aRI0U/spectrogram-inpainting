@@ -1,6 +1,7 @@
 import torch.nn as nn
 
-class DeconvModel(nn.Module):
+
+class ConvNetDecoder(nn.Module):
     
     """
         Creates a parametric DeconvNet model for the decoder.
@@ -16,8 +17,6 @@ class DeconvModel(nn.Module):
             - each convolution is followed by activation conv_activation
             - UpsamplingNearest2d between each pair of convolutions
     """
-
-
     def __init__(
         self,
 
@@ -52,7 +51,7 @@ class DeconvModel(nn.Module):
         for i in range(len(conv_channels or []) - 1):
             height = height // upsample_factor ** 2
             width = width // upsample_factor ** 2
-            conv_dimensions.append((height, weight))
+            conv_dimensions.append((height, width))
         conv_dimensions.reverse()
         print(conv_dimensions[0])
         self._conv_in = (conv_channels[0], *conv_dimensions[0])
@@ -101,7 +100,7 @@ class DeconvModel(nn.Module):
     def forward(self, inputs):
                     
         # format for dense layers
-        x = x.view(-1, self._input)
+        x = inputs.view(-1, self._input)
         
         # apply dense layers if any
         x = self.dense(x)
@@ -112,4 +111,4 @@ class DeconvModel(nn.Module):
         # apply convolutions if any
         x = self.conv(x)
         
-        return outputs
+        return x

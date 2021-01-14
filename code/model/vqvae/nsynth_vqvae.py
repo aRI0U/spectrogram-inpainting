@@ -43,7 +43,12 @@ class NSynthVQVAE(BaseVQVAE):
                 input_channels=1,
                 output_dim=z_dim
             )
-            self.decoder = decoders.ConvNetDecoder()
+            self.decoder = decoders.ConvNetDecoder(
+                input_dim=z_dim,
+                output_height=num_frequency_bins,
+                output_width=num_timesteps,
+                output_channels=1
+            )
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
 
@@ -58,7 +63,7 @@ class NSynthVQVAE(BaseVQVAE):
         ----------
         x (torch.FloatTensor): batch of spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
 
-        ReturnsA
+        Returns
         -------
         x_hat (torch.FloatTensor): reconstructed spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
         codes (torch.LongTensor): encoding indices, shape (???)
