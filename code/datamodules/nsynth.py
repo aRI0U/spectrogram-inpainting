@@ -3,6 +3,7 @@ r"""Wrap NSynth dataset with a Lightning Data Module"""
 import requests
 import tarfile
 from tqdm import tqdm
+from datamodules.nsynthdataset import NSynthDataset
 
 from torch.utils.data import DataLoader
 
@@ -27,8 +28,13 @@ class NSynthDataModule(pl.LightningDataModule):
 
 
     def setup(self, stage=None):
-        # TODO: initialize train, val and test sets in this function, maybe create an external NSynthDataset class...
-        pass
+        # the train dataset is not used because of its size. 
+        if stage == 'fit' or stage is None:
+            self.nsynth_train = NSynthDataset(self.data_dir / "val") 
+            self.nsynth_val = NSynthDataset(self.data_dir / "test") 
+
+        if stage == 'test' or stage is None:
+            self.nsynth_test = NSynthDataset(self.data_dir / "test")
 
     def train_dataloader(self):
         return DataLoader(self.nsynth_train, **self.dl_kwargs, shuffle=True)
