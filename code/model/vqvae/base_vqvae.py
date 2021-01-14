@@ -1,6 +1,7 @@
 """Base class for VQ VAE Lightning module"""
 
 import abc
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn.functional as F
@@ -63,11 +64,14 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
     def plot_codebook_usage(self, codes, training=False):
         r"""Computes the histogram of codebook usage and displays it to TensorBoard"""
         step = "Training" if training else "Validation"
-        self.logger.experiment.add_histogram(
+
+        figure = plt.figure()
+        plt.hist(codes.cpu().numpy(), bins=self.hparams.num_codewords - 1)
+
+        self.logger.experiment.add_figure(
             f"Codebook usage/{step}",
-            codes.view(-1).cpu(),
-            self.current_epoch,
-            bins='auto'
+            figure,
+            self.current_epoch
         )
 
     def configure_optimizers(self):

@@ -110,22 +110,31 @@ class NSynthVQVAE(BaseVQVAE):
         return loss
 
     def training_epoch_end(self, outputs):
-        x = next(iter(self.train_dataloader()))
+        x = next(iter(self.train_dataloader()))[:8]
         x_hat, codes, _ = self(x)
 
         # display images in tensorboard
-        self.logger.experiment.add_image("Originals/Training", x[0].cpu().data, self.current_epoch)
-        self.logger.experiment.add_image("Reconstructions/Training", x_hat[0].cpu().data, self.current_epoch)
+        self.logger.experiment.add_images("Originals/Training", x.cpu().data, self.current_epoch)
+        self.logger.experiment.add_images("Reconstructions/Training", x_hat.cpu().data, self.current_epoch)
+
+        # display codebook usage
         self.plot_codebook_usage(codes, training=True)
 
+        # send audio
+
+
     def validation_epoch_end(self, outputs):
-        x = next(iter(self.val_dataloader()))
+        x = next(iter(self.val_dataloader()))[:8]
         x_hat, codes, _ = self(x)
 
         # display images in tensorboard
-        self.logger.experiment.add_image("Originals/Validation", x[0].cpu().data, self.current_epoch)
-        self.logger.experiment.add_image("Reconstructions/Validation", x_hat[0].cpu().data, self.current_epoch)
+        self.logger.experiment.add_images("Originals/Validation", x.cpu().data, self.current_epoch)
+        self.logger.experiment.add_images("Reconstructions/Validation", x_hat.cpu().data, self.current_epoch)
+
+        # display codebook usage
         self.plot_codebook_usage(codes, training=False)
+
+        # send audio
 
         # log hyperparameters
         metrics_log = {'val_loss': torch.stack(outputs).mean()}
