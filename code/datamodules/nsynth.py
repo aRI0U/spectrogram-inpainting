@@ -14,10 +14,12 @@ ALL_SUBSETS = ['test', 'valid']
 
 
 class NSynthDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir, **dl_kwargs):
+    def __init__(self, data_dir, nfft, win_length, **dl_kwargs):
         super(NSynthDataModule, self).__init__()
 
         self.data_dir = data_dir
+        self.nfft = nfft
+        self.win_length = win_length
         self.dl_kwargs = dl_kwargs
 
         self.nsynth_train = None
@@ -28,13 +30,17 @@ class NSynthDataModule(pl.LightningDataModule):
         self.download_data()
 
     def setup(self, stage=None):
-        # the train dataset is not used because of its size. 
+        # the train dataset is not used because of its size.
+        kwargs = dict(
+            nfft=self.nfft,
+            win_length=self.win_length
+        )
         if stage == 'fit' or stage is None:
-            self.nsynth_train = NSynthDataset(self.data_dir / "valid")
-            self.nsynth_val = NSynthDataset(self.data_dir / "test") 
+            self.nsynth_train = NSynthDataset(self.data_dir / "valid", **kwargs)
+            self.nsynth_val = NSynthDataset(self.data_dir / "test", **kwargs)
 
         if stage == 'test' or stage is None:
-            self.nsynth_test = NSynthDataset(self.data_dir / "test")
+            self.nsynth_test = NSynthDataset(self.data_dir / "test", **kwargs)
 
     def train_dataloader(self):
         return DataLoader(self.nsynth_train, **self.dl_kwargs, shuffle=True)

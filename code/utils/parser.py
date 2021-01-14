@@ -67,9 +67,9 @@ class Parser:
                              help='dimension of the latent space')
         hparams.add_argument('--num_codewords', type=int, default=10,
                              help='number of codewords used as discrete embeddings')
-        hparams.add_argument('--num_frequency_bins', type=int, default=128,
-                             help='number of frequency bins for STFT')
-        hparams.add_argument('--num_timesteps', type=int, default=2048,
+        hparams.add_argument('--nfft', type=int, default=512,
+                             help='Nfft for STFT')
+        hparams.add_argument('--win_length', type=int, default=512,
                              help='number of timesteps per audio sample')
 
         args.train = not args.test

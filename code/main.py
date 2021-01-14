@@ -22,7 +22,12 @@ if args.dataset_name == "MNIST":
     dm = datamodules.MNISTDataModule(data_dir, **args.dl_kwargs)
 
 elif args.dataset_name == "NSynth":
-    dm = datamodules.NSynthDataModule(data_dir, **args.dl_kwargs)
+    dm = datamodules.NSynthDataModule(
+        data_dir,
+        args.nfft,
+        args.win_length,
+        **args.dl_kwargs
+    )
 
 else:
     raise NotImplementedError(f"No implementation is provided for this dataset: {args.dataset_name}")
@@ -41,8 +46,8 @@ if args.architecture == 'mnist':
 else:
     model = vqvae.NSynthVQVAE(
         args.architecture,
-        args.num_frequency_bins,
-        args.num_timesteps,
+        args.nfft // 2 + 1,
+        64000 * 2 // args.win_length + 1,
         args.latent_dim,
         args.num_codewords,
         args.commitment_cost,
