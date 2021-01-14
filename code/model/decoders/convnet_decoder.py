@@ -52,9 +52,10 @@ class DeconvModel(nn.Module):
         for i in range(len(conv_channels or []) - 1):
             height = height // upsample_factor ** 2
             width = width // upsample_factor ** 2
-            conv_dimensions.append((height, width))
+            conv_dimensions.append((height, weight))
         conv_dimensions.reverse()
-        self._conv_in = (output_channels if conv_channels is None else conv_channels[0], *conv_dimensions[0])
+        print(conv_dimensions[0])
+        self._conv_in = (conv_channels[0], *conv_dimensions[0])
 
 
         # list linear layers
@@ -100,15 +101,15 @@ class DeconvModel(nn.Module):
     def forward(self, inputs):
                     
         # format for dense layers
-        x = inputs.view(-1, self._input)
+        x = x.view(-1, self._input)
         
         # apply dense layers if any
         x = self.dense(x)
-        
+
         # format for convolutions
-        x = x.view(-1, *self._conv_in)
+        x = inputs.view(-1, *self._conv_in)
         
         # apply convolutions if any
-        outputs = self.conv(x)
+        x = self.conv(x)
         
         return outputs
