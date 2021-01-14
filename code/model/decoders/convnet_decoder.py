@@ -53,8 +53,7 @@ class ConvNetDecoder(nn.Module):
             width = width // upsample_factor ** 2
             conv_dimensions.append((height, width))
         conv_dimensions.reverse()
-        print(conv_dimensions[0])
-        self._conv_in = (conv_channels[0], *conv_dimensions[0])
+        self._conv_in = (output_channels if conv_channels is None else conv_channels[0], *conv_dimensions[0])
 
 
         # list linear layers
@@ -104,11 +103,11 @@ class ConvNetDecoder(nn.Module):
         
         # apply dense layers if any
         x = self.dense(x)
-
+        
         # format for convolutions
-        x = inputs.view(-1, *self._conv_in)
+        x = x.view(-1, *self._conv_in)
         
         # apply convolutions if any
-        x = self.conv(x)
+        outputs = self.conv(x)
         
         return x
