@@ -52,7 +52,7 @@ class Parser:
         dataset.add_argument('--input_dim', type=int, default=1,
                              help='number of channels of the encoder input')
 
-        network.add_argument('--architecture', type=str, choices=['mnist'], default='mnist',
+        network.add_argument('--architecture', type=str, choices=['mnist', 'convnet'], default='mnist',
                              help='architecture used for encoder and decoder')
         network.add_argument('--ema', action='store_true',
                              help='use Exponential Moving Averages for updating latent embeddings')

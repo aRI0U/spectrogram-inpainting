@@ -11,6 +11,7 @@ import pytorch_lightning as pl
 DATASET_URL_FORMAT = 'http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-{}.jsonwav.tar.gz'
 ALL_SUBSETS = ['test', 'valid']
 
+
 class NSynthDataModule(pl.LightningDataModule):
     def __init__(self, data_dir, **dl_kwargs):
         super(NSynthDataModule, self).__init__()
@@ -24,7 +25,6 @@ class NSynthDataModule(pl.LightningDataModule):
 
     def prepare_data(self):
         self.download_data()
-
 
     def setup(self, stage=None):
         # TODO: initialize train, val and test sets in this function, maybe create an external NSynthDataset class...
@@ -43,21 +43,21 @@ class NSynthDataModule(pl.LightningDataModule):
         r"""Download and extract the NSynth dataset
         in the folder self.data_dir if it is not already downloaded."""
         # check whether all subsets are already downloaded or not
-        if all(subset in self.data_dir.iterdir() for subset in ALL_SUBSETS):
+        if all(self.data_dir / subset in self.data_dir.iterdir() for subset in ALL_SUBSETS):
             return
 
         # ask which subsets should be downloaded
         print("WARNING: NSynth dataset is quite huge (almost 2 GB).", end=" ")
         subsets_to_dl = input(f"Which subset(s) do you want to download? [{'/'.join(ALL_SUBSETS)}] ").split(' ')
 
-        for set in subsets_to_dl:
+        for subset in subsets_to_dl:
             # filter invalid subsets
-            if set not in ALL_SUBSETS:
+            if subset not in ALL_SUBSETS or (self.data_dir / subset).is_dir():
                 continue
 
-            # download set
-            url = DATASET_URL_FORMAT.format(set)
-            filename = self.data_dir / f"nsynth-{set}.tar.gz"
+            # download subset
+            url = DATASET_URL_FORMAT.format(subset)
+            filename = self.data_dir / f"nsynth-{subset}.tar.gz"
             print(f"Downloading {url}. It might take some time...")
             self.download(url, filename)
 
@@ -70,8 +70,8 @@ class NSynthDataModule(pl.LightningDataModule):
             tar.close()
 
             # rename the output directory
-            output_dir = self.data_dir / f"nsynth-{set}"
-            output_dir.rename(self.data_dir / set)
+            output_dir = self.data_dir / f"nsynth-{subset}"
+            output_dir.rename(self.data_dir / subset)
 
             # delete the archive to save space
             filename.unlink()

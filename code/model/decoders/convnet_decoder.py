@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-class ConvNetEncoder(nn.Module):
+class ConvNetDecoder(nn.Module):
     """
         Creates a parametric Convnet model for the encoder.
 
@@ -56,7 +56,7 @@ class ConvNetEncoder(nn.Module):
             for i in range(1, len(channels)):
 
                 # add a convolution layer
-                conv_sequence.append(nn.Conv2d(
+                conv_sequence.append(nn.ConvTranspose2d(
                     in_channels=channels[i - 1],
                     out_channels=channels[i],
                     kernel_size=conv_kernel,

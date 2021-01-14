@@ -4,6 +4,7 @@
     "batch_size": 32,
     "num_workers": 4
   },
+  "architecture": "convnet",
   "adam": {
     "lr": 1e-3
   }
