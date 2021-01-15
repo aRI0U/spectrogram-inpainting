@@ -1,5 +1,14 @@
 from datetime import datetime
 from pathlib import Path
+import sys
+
+# https://github.com/pytorch/audio/issues/903
+import torchaudio
+if sys.platform.startswith("win"):
+    torchaudio.USE_SOUNDFILE_LEGACY_INTERFACE = False
+else:
+    torchaudio.set_audio_backend("sox_io")
+
 
 import pytorch_lightning as pl
 
@@ -46,8 +55,8 @@ if args.architecture == 'mnist':
 else:
     model = vqvae.NSynthVQVAE(
         args.architecture,
-        args.nfft // 2 + 1,
-        64000 * 2 // args.win_length + 1,
+        args.nfft,
+        args.win_length,
         args.latent_dim,
         args.num_codewords,
         args.commitment_cost,

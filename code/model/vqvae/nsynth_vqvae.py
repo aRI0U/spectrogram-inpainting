@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import torchaudio.transforms
 
 import model.encoders as encoders
 import model.decoders as decoders
@@ -10,8 +11,8 @@ from model.vqvae.base_vqvae import BaseVQVAE
 class NSynthVQVAE(BaseVQVAE):
     def __init__(self,
                  architecture,
-                 num_frequency_bins,
-                 num_timesteps,
+                 nfft,
+                 win_length,
                  z_dim,
                  num_codewords,
                  commitment_cost,
@@ -21,8 +22,8 @@ class NSynthVQVAE(BaseVQVAE):
         Parameters
         ----------
         architecture (str)
-        num_frequency_bins (int)
-        num_timesteps (int)
+        nfft (int)
+        win_length (int)
         z_dim (int)
         num_codewords (int)
         commitment_cost (float)
@@ -32,6 +33,9 @@ class NSynthVQVAE(BaseVQVAE):
                                           num_codewords,
                                           commitment_cost,
                                           **optimizer_kwargs)
+
+        num_frequency_bins = nfft // 2 + 1
+        num_timesteps = 64000 * 2 // win_length + 1
 
         if architecture == 'basic':
             self.encoder = encoders.BasicEncoder(num_frequency_bins, num_timesteps, z_dim)
@@ -55,6 +59,8 @@ class NSynthVQVAE(BaseVQVAE):
         self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost)
 
         self.example_input_array = torch.randn(1, 1, num_frequency_bins, num_timesteps)
+
+        self.inverse_transform = torchaudio.transforms.GriffinLim(n_fft=nfft, win_length=win_length, n_iter=512)
 
     def forward(self, x):
         r"""Forward pass of VQ-VAE
@@ -121,7 +127,17 @@ class NSynthVQVAE(BaseVQVAE):
         self.plot_codebook_usage(codes, training=True)
 
         # send audio
-
+        idx = torch.randint(0, 8, (1,))
+        self.logger.experiment.add_audio(
+            "Originals/Training",
+            self.inverse_transform(x[idx]).cpu().data,
+            self.current_epoch
+        )
+        self.logger.experiment.add_audio(
+            "Reconstructions/Training",
+            self.inverse_transform(x_hat[idx]).cpu().data,
+            self.current_epoch
+        )
 
     def validation_epoch_end(self, outputs):
         x = next(iter(self.val_dataloader()))[:8]
@@ -135,6 +151,17 @@ class NSynthVQVAE(BaseVQVAE):
         self.plot_codebook_usage(codes, training=False)
 
         # send audio
+        idx = torch.randint(0, 8, (1,))
+        self.logger.experiment.add_audio(
+            "Originals/Validation",
+            self.inverse_transform(x[idx]).cpu().data,
+            self.current_epoch
+        )
+        self.logger.experiment.add_audio(
+            "Reconstructions/Validation",
+            self.inverse_transform(x_hat[idx]).cpu().data,
+            self.current_epoch
+        )
 
         # log hyperparameters
         metrics_log = {'val_loss': torch.stack(outputs).mean()}

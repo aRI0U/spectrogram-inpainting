@@ -1,7 +1,6 @@
 import json
 
-import torch
-import torchaudio
+import torchaudio.transforms
 from torch.utils.data import Dataset
 
 
@@ -16,9 +15,11 @@ class NSynthDataset(Dataset):
         win_length (int):
         """
         self.data_dir = data_dir
-        self.nfft = nfft
-        self.win_length = win_length
-        self.window = torch.hann_window(self.win_length)
+
+        self.transform = torchaudio.transforms.Spectrogram(
+            n_fft=nfft,
+            win_length=win_length
+        )
 
         with open(self.data_dir / "examples.json") as f:
             self.dict = json.load(f)
@@ -37,16 +38,7 @@ class NSynthDataset(Dataset):
         name = self.filenames[index]
         sample, _ = torchaudio.load(self.data_dir / 'audio/{}.wav'.format(name))
 
-        spec = torchaudio.functional.spectrogram(sample,
-                                                 pad=0,
-                                                 window=self.window,
-                                                 n_fft=self.nfft,
-                                                 hop_length=self.win_length // 2,
-                                                 win_length=self.win_length,
-                                                 power=None,
-                                                 normalized=True)
-        spec = torch.sqrt(torch.sum(spec ** 2, axis=-1))  # valeur absolue du spectrogramme
-        return spec
+        return self.transform(sample)
 
     def __len__(self):
         return len(self.filenames)
