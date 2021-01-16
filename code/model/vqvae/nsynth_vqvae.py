@@ -38,12 +38,21 @@ class NSynthVQVAE(BaseVQVAE):
             self.decoder = decoders.BasicDecoder(num_frequency_bins, num_timesteps, z_dim)
         elif architecture == 'convnet':
             self.encoder = encoders.ConvNetEncoder(
+                conv_channels=[16,32],
+                dense_layers=[100,100],
                 input_height=num_frequency_bins,
                 input_width=num_timesteps,
                 input_channels=1,
                 output_dim=z_dim
             )
-            self.decoder = decoders.ConvNetDecoder()
+            self.decoder = decoders.ConvNetDecoder(
+                conv_channels=[32,16],
+                dense_layers=[100,100],
+                output_height=num_frequency_bins,
+                output_width=num_timesteps,
+                output_channels=1,
+                input_dim=z_dim
+            )
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
 
