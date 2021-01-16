@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-class DeconvModel(nn.Module):
+class ConvNetDecoder(nn.Module):
     
     """
         Creates a parametric DeconvNet model for the decoder.
