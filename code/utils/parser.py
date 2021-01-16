@@ -65,7 +65,7 @@ class Parser:
                              help='weight for the commitment cost')
         hparams.add_argument('--latent_dim', type=int, default=16,
                              help='dimension of the latent space')
-        hparams.add_argument('--num_codewords', type=int, default=10,
+        hparams.add_argument('--num_codewords', type=int, default=16,
                              help='number of codewords used as discrete embeddings')
         hparams.add_argument('--nfft', type=int, default=512,
                              help='Nfft for STFT')

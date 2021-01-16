@@ -66,7 +66,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         step = "Training" if training else "Validation"
 
         figure = plt.figure()
-        plt.hist(codes.cpu().numpy(), bins=self.hparams.num_codewords - 1)
+        plt.hist(codes.view(-1).cpu().numpy(), bins=self.hparams.num_codewords - 1)
 
         self.logger.experiment.add_figure(
             f"Codebook usage/{step}",

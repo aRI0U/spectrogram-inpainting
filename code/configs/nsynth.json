@@ -7,5 +7,6 @@
   "architecture": "convnet",
   "adam": {
     "lr": 1e-3
-  }
+  },
+  "latent_dim": 16
 }
