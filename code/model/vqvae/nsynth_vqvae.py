@@ -57,6 +57,7 @@ class NSynthVQVAE(BaseVQVAE):
                 conv_channels=[16],
                 dense_layers=[z_dim, 16]
             )
+
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
 
