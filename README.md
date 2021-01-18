@@ -84,3 +84,4 @@ and open http://localhost:6006 in a web browser.
 - resnet pour l'encoder/decoder
 - VQ-VAE2
 - transformations mieux que juste spectrogram
+- multithreading pour le co2 tracker

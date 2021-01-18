@@ -6,6 +6,7 @@ import model.encoders as encoders
 import model.decoders as decoders
 from model.quantizers import VectorQuantizer
 from model.vqvae.base_vqvae import BaseVQVAE
+from utils.co2_tracker import CO2Tracker
 
 
 class NSynthVQVAE(BaseVQVAE):
@@ -46,7 +47,7 @@ class NSynthVQVAE(BaseVQVAE):
                 input_width=num_timesteps,
                 input_channels=1,
                 output_dim=z_dim,
-                conv_channels=[16],
+                conv_channels=[8, 16],
                 dense_layers=[16, z_dim]
             )
             self.decoder = decoders.ConvNetDecoder(
@@ -54,7 +55,7 @@ class NSynthVQVAE(BaseVQVAE):
                 output_height=num_frequency_bins,
                 output_width=num_timesteps,
                 output_channels=1,
-                conv_channels=[16],
+                conv_channels=[16, 8],
                 dense_layers=[z_dim, 16]
             )
 
@@ -66,6 +67,8 @@ class NSynthVQVAE(BaseVQVAE):
         self.example_input_array = torch.randn(1, 1, num_frequency_bins, num_timesteps)
 
         self.inverse_transform = torchaudio.transforms.GriffinLim(n_fft=nfft, win_length=win_length, n_iter=512)
+
+        self.tracker = CO2Tracker()
 
     def forward(self, x):
         r"""Forward pass of VQ-VAE
@@ -91,6 +94,10 @@ class NSynthVQVAE(BaseVQVAE):
         x_hat = self.decoder(z_q)
 
         return x_hat, codes, q_loss
+
+    # %% engineering
+    def on_train_start(self):
+        self.tracker.start()
 
     def training_step(self, batch, batch_idx):
         x_hat, codes, q_loss = self(batch)
@@ -121,6 +128,8 @@ class NSynthVQVAE(BaseVQVAE):
         return loss
 
     def training_epoch_end(self, outputs):
+        self.tracker.record()
+
         x = next(iter(self.train_dataloader()))[:8]
         x_hat, codes, _ = self(x)
 
@@ -141,6 +150,18 @@ class NSynthVQVAE(BaseVQVAE):
         self.logger.experiment.add_audio(
             "Reconstructions/Training",
             self.inverse_transform(x_hat[idx]).cpu().data,
+            self.current_epoch
+        )
+
+        # display energy consumption
+        self.logger.experiment.add_scalars(
+            "Consumption/Power",
+            self.tracker.power_stats(),
+            self.current_epoch
+        )
+        self.logger.experiment.add_scalar(
+            "Consumption/CO2 equivalent",
+            self.tracker.co2_equivalent,
             self.current_epoch
         )
 

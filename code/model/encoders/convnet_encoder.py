@@ -66,14 +66,14 @@ class ConvNetEncoder(nn.Module):
             # add maxpool
             if i < len(channels) - 1:
                 conv_sequence.append(nn.MaxPool2d(kernel_size=maxpool_kernel))
-                
+
         # determine the number of outputs from the convolution layers
         self._conv_out = input_height * input_width * channels[-1]
         h, w = input_height, input_width
         for i in range(len(conv_channels or []) - 1):
             h, w = h // maxpool_kernel, w // maxpool_kernel
         self._conv_out = h * w * channels[-1]
-    
+
         # linear layers
         dense_sequence = []
         widths = [self._conv_out] + (dense_layers or [])
@@ -88,14 +88,13 @@ class ConvNetEncoder(nn.Module):
         self.conv = nn.Sequential(*conv_sequence)
         self.dense = nn.Sequential(*dense_sequence)
 
-        
     def forward(self, inputs):
         # format for convolution
         x = inputs.view(-1, self._channels, self._height, self._width)
 
         # apply convolutions if any
         x = self.conv(x)
-        
+
         # format for dense layers
         x = x.view(-1, self._conv_out)
 
@@ -103,4 +102,3 @@ class ConvNetEncoder(nn.Module):
         outputs = self.dense(x)
 
         return outputs
-
