@@ -60,6 +60,7 @@ else:
         args.latent_dim,
         args.num_codewords,
         args.commitment_cost,
+        args.restarts,
         **args.adam
     )
 

@@ -17,6 +17,7 @@ class NSynthVQVAE(BaseVQVAE):
                  z_dim,
                  num_codewords,
                  commitment_cost,
+                 codebook_restart,
                  **optimizer_kwargs):
         r"""
 
@@ -47,7 +48,7 @@ class NSynthVQVAE(BaseVQVAE):
                 input_width=num_timesteps,
                 input_channels=1,
                 output_dim=z_dim,
-                conv_channels=[8, 16],
+                conv_channels=[4, 8, 16],
                 dense_layers=[16, z_dim]
             )
             self.decoder = decoders.ConvNetDecoder(
@@ -55,14 +56,13 @@ class NSynthVQVAE(BaseVQVAE):
                 output_height=num_frequency_bins,
                 output_width=num_timesteps,
                 output_channels=1,
-                conv_channels=[16, 8],
+                conv_channels=[16, 8, 4],
                 dense_layers=[z_dim, 16]
             )
-
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
 
-        self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost)
+        self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost, codebook_restart)
 
         self.example_input_array = torch.randn(1, 1, num_frequency_bins, num_timesteps)
 
@@ -70,7 +70,7 @@ class NSynthVQVAE(BaseVQVAE):
 
         self.tracker = CO2Tracker()
 
-    def forward(self, x):
+    def forward(self, x, training=True):
         r"""Forward pass of VQ-VAE
 
         Parameters
@@ -88,7 +88,7 @@ class NSynthVQVAE(BaseVQVAE):
         z_e = self.encoder(x)
 
         # 2. quantize
-        z_q, codes, q_loss = self.quantizer(z_e)
+        z_q, codes, q_loss = self.quantizer(z_e, training=training)
 
         # 3. decode
         x_hat = self.decoder(z_q)
@@ -100,7 +100,7 @@ class NSynthVQVAE(BaseVQVAE):
         self.tracker.start()
 
     def training_step(self, batch, batch_idx):
-        x_hat, codes, q_loss = self(batch)
+        x_hat, codes, q_loss = self(batch, training=True)
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, batch)
@@ -114,7 +114,7 @@ class NSynthVQVAE(BaseVQVAE):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x_hat, codes, q_loss = self(batch)
+        x_hat, codes, q_loss = self(batch, training=False)
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, batch)

@@ -72,7 +72,7 @@ class CO2Tracker:
 
     def record_cpu_power(self):
         # TODO: find how to compute cpu power given percent, memory, etc.
-        self._total_cpu_power += 5  # dummy example
+        self._total_cpu_power += 0  # dummy example
 
     def record_gpu_power(self):
         # TODO: test model on GPU
@@ -81,4 +81,4 @@ class CO2Tracker:
 
     def record_ram_power(self):
         # TODO: same as CPU
-        self._total_ram_power += 5  # dummy example
+        self._total_ram_power += 0  # dummy example
