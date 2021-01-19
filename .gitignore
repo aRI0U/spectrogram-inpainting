@@ -1,5 +1,6 @@
 code/.idea
 code/datasets
+code/env
 code/logs
 **/*.pyc
 **/.ipynb_checkpoints
