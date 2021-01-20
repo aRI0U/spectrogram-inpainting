@@ -127,7 +127,7 @@ class ConvNetDecoder(nn.Module):
             torch.Tensor: reconstructed spectrogram, shape (batch_size, out_channels, out_height, out_width)
         """
 
-        # format from (N*H*W,C) to (N,H,W,C) format for dense layers
+        # format to (N,H,W,C) for dense layers
         x = inputs.view(-1, self.in_height, self.in_width, self.in_channels)
         x = self.dense(x)
         

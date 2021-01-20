@@ -107,7 +107,8 @@ class ConvNetEncoder(nn.Module):
         x = self.dense(x)
         
         # format to (N*H*W,C) format for quantization
-        outputs = x.view(-1, self.out_channels)
-        
+        # outputs = x.view(-1, self.out_channels)
+        outputs = x
+
         return outputs
 
