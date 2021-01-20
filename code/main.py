@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
-# magic trick to make it work on ircam cluster
+# magic trick to make it work on ircam machines
 sys.path.insert(1, '/fast-1/alain-atiam/site-packages')
 
 # https://github.com/pytorch/audio/issues/903

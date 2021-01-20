@@ -22,11 +22,11 @@ class MNISTEncoder(nn.Module):
 
         Parameters
         ----------
-        inputs (torch.FloatTensor): batch of images, shape (batch_size, in_channels, height, width)
+        inputs (torch.Tensor): batch of images, shape (batch_size, in_channels, height, width)
 
         Returns
         -------
-        torch.FloatTensor: encoded images, shape (batch_size, out_channels, new_height, new_width)
+        torch.Tensor: encoded images, shape (batch_size, new_height, new_width, out_channels)
         """
         x = self.conv1(inputs)
         x = self.activation(x)
@@ -34,4 +34,4 @@ class MNISTEncoder(nn.Module):
         x = self.conv2(x)
         x = self.activation(x)
 
-        return x
+        return x.permute(0, 2, 3, 1).contiguous()
