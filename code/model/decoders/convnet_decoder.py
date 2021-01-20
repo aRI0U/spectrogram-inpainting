@@ -64,7 +64,7 @@ class ConvNetDecoder(nn.Module):
             dense_sequence.append(eval(f'nn.{dense_activation}()'))
 
         # create the last layer
-        dense_sequence.append(nn.Linear(widths[-1], self._conv_in[0] * self._conv_in[1] * self._conv_in[2]))
+        dense_sequence.append(nn.Linear(widths[-1], output_channels if conv_channels is None else conv_channels[0]))
 
         # list convolution layers
         conv_sequence = []
@@ -94,15 +94,37 @@ class ConvNetDecoder(nn.Module):
     def forward(self, inputs):
 
         # format for dense layers
-        x = inputs.view(-1, self._input)
+        # TODO: why flatten
+        # x = inputs.view(-1, self._input)
 
         # apply dense layers if any
-        x = self.dense(x)
+        x = self.dense(inputs)
 
         # format for convolutions
-        x = x.view(-1, *self._conv_in)
+        x = x.permute(0, 3, 1, 2)
 
         # apply convolutions if any
         x = self.conv(x)
 
         return x
+
+
+if __name__ == '__main__':
+    import torch
+
+    params = dict(
+        input_dim=16,
+        output_height=257,
+        output_width=251,
+        output_channels=1,
+        dense_layers=[16],
+        conv_channels=[16, 8]
+    )
+
+    net = ConvNetDecoder(**params)
+
+    x = torch.rand(31, 63, 17, 16)
+
+    y = net(x)
+
+    print(y.shape)

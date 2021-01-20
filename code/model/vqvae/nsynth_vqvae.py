@@ -47,9 +47,9 @@ class NSynthVQVAE(BaseVQVAE):
                 input_height=num_frequency_bins,
                 input_width=num_timesteps,
                 input_channels=1,
-                output_dim=z_dim,
+                output_channels=z_dim,
                 conv_channels=[4, 8, 16],
-                dense_layers=[16, z_dim]
+                dense_layers=[16]
             )
             self.decoder = decoders.ConvNetDecoder(
                 input_dim=z_dim,
@@ -57,7 +57,7 @@ class NSynthVQVAE(BaseVQVAE):
                 output_width=num_timesteps,
                 output_channels=1,
                 conv_channels=[16, 8, 4],
-                dense_layers=[z_dim, 16]
+                dense_layers=[16]
             )
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
@@ -69,6 +69,8 @@ class NSynthVQVAE(BaseVQVAE):
         self.inverse_transform = torchaudio.transforms.GriffinLim(n_fft=nfft, win_length=win_length, n_iter=512)
 
         self.tracker = CO2Tracker()
+
+        print(self)
 
     def forward(self, x, training=True):
         r"""Forward pass of VQ-VAE

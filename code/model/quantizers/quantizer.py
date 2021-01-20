@@ -98,16 +98,23 @@ class VectorQuantizer(nn.Module):
         self.sum_codebook_usage += usage
 
     def restart_unused_codes(self, encoder_outputs):
+        r"""
+
+        Parameters
+        ----------
+        encoder_outputs (torch.Tensor):
+        """
         average_codebook_usage = self.sum_codebook_usage / self.number_samples
         to_restart = average_codebook_usage < 0.1 / self.num_codewords
 
         self.sum_codebook_usage[to_restart] = 1 / self.num_codewords
         self.number_samples[to_restart] = 1
 
-        if to_restart.sum() > 0:
+        num_to_restart = to_restart.sum().item()
+        if num_to_restart > 0:
             print("restarting codes", *torch.arange(self.num_codewords)[to_restart].cpu().numpy())
 
-            indices_new_codes = torch.randperm(len(encoder_outputs))[:to_restart.sum().item()]
+            indices_new_codes = torch.randperm(len(encoder_outputs))[:num_to_restart]
 
             # self.codewords[to_restart][i] = encoder_outputs[indices_new_codes][i]
             self.codewords.data[to_restart] = encoder_outputs[indices_new_codes]

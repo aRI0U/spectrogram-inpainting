@@ -86,18 +86,30 @@ class ConvNetEncoder(nn.Module):
         # put layers in sequential objects for use in self.forward()
         self.conv = nn.Sequential(*conv_sequence)
         self.dense = nn.Sequential(*dense_sequence)
-        self.flatten = nn.Flatten(start_dim=0, end_dim=2)
+        # self.flatten = nn.Flatten(start_dim=0, end_dim=2)
 
     def forward(self, inputs):
+        r"""
+
+        Parameters
+        ----------
+        inputs (torch.Tensor): spectrogram to encode, shape (batch_size, input_channels, input_height, input_width)
+
+        Returns
+        -------
+        torch.Tensor: latent image, shape (batch_size, ???, ???, output_channels)
+        TODO: what is output height, width
+        """
         # format to (N,C,H,W) format for convolutions
+        # TODO: reshape seems to be redundant
         x = inputs.view(-1, self._channels, self._height, self._width)
         x = self.conv(x)
         
         # format to (N,H,W,C) format for dense layers
         x = x.permute(0, 2, 3, 1)
         x = self.dense(x)
+        #
+        # # format to (N*H*W,C) format for quantization
+        # outputs = self.flatten(x)
         
-        # format to (N*H*W,C) format for quantization
-        outputs = self.flatten(x)
-        
-        return outputs
+        return x

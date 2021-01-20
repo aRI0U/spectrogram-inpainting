@@ -18,7 +18,7 @@ class Parser:
 
         cli = cli_parser.add_argument_group('command line arguments')
 
-        ## FIRST ORDER OPTIONS
+        # FIRST ORDER OPTIONS
 
         cli.add_argument('-c', '--config', type=Path, metavar='PATH',
                          help='configuration file')
