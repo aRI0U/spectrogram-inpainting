@@ -27,13 +27,37 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         super(BaseVQVAE, self).__init__()
         self.save_hyperparameters()
 
+    def forward(self, x, training=True):
+        r"""Forward pass of VQ-VAE
+
+        Parameters
+        ----------
+        x (torch.FloatTensor): batch of spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
+
+        Returns
+        -------
+        x_hat (torch.FloatTensor): reconstructed spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
+        codes (torch.LongTensor): encoding indices, shape (???)
+        q_loss (torch.FloatTensor): quantization loss, shape (1)
+        """
+        # 1. encode
+        z_e = self.encoder(x)
+
+        # 2. quantize
+        z_q, codes, q_loss = self.quantizer(z_e, training=training)
+
+        # 3. decode
+        x_hat = self.decoder(z_q)
+
+        return x_hat, codes, q_loss
+
     def training_step(self, batch, batch_idx):
         x, _ = batch
-        x_hat, codes, q_loss = self(x)
+        x_hat, codes, q_loss = self(x, training=True)
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, x)
-        loss = rec_loss + q_loss
+        loss = rec_loss  # + q_loss
 
         # logging
         self.log('Reconstruction loss/Training', rec_loss)
@@ -44,7 +68,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
 
     def validation_step(self, batch, batch_idx):
         x, _ = batch
-        x_hat, codes, q_loss = self(x)
+        x_hat, codes, q_loss = self(x, training=False)
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, x)

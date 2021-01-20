@@ -71,31 +71,6 @@ class NSynthVQVAE(BaseVQVAE):
 
         print(self)
 
-    def forward(self, x, training=True):
-        r"""Forward pass of VQ-VAE
-
-        Parameters
-        ----------
-        x (torch.FloatTensor): batch of spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
-
-        Returns
-        -------
-        x_hat (torch.FloatTensor): reconstructed spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
-        codes (torch.LongTensor): encoding indices, shape (???)
-        q_loss (torch.FloatTensor): quantization loss, shape (1)
-        """
-        # TODO: improve this implementation
-        # 1. encode
-        z_e = self.encoder(x)
-
-        # 2. quantize
-        z_q, codes, q_loss = self.quantizer(z_e, training=training)
-
-        # 3. decode
-        x_hat = self.decoder(z_e)
-
-        return x_hat, codes, q_loss
-
     # %% engineering
     def on_train_start(self):
         self.tracker.start()
