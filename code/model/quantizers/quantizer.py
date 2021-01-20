@@ -113,3 +113,17 @@ class VectorQuantizer(nn.Module):
 
             if self.codewords.grad is not None:
                 self.codewords.grad[to_restart] = 0
+
+
+if __name__ == '__main__':
+    num_codewords = 61
+    codewords_dim = 64
+    vq = VectorQuantizer(num_codewords, codewords_dim, 0.15, False)
+
+    z_e = torch.randn(15, 17, 13, codewords_dim)
+    
+    z_q, codes, loss = vq(z_e)
+
+    print('z_e :', z_e.shape, z_e.dtype)
+    print('z_q :', z_q.shape, z_q.dtype)
+    print('codes :', codes.shape, codes.dtype)
