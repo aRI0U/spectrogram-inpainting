@@ -26,13 +26,14 @@ class ConvNetEncoder(nn.Module):
             input_height=28,
             input_width=28,
             input_channels=1,
-            output_dim=10,
+            output_channels=50,
 
             # architecture of the conv and dense layers
             conv_channels=None,
             dense_layers=None,
             conv_kernel=3,
             maxpool_kernel=2,
+            batchnorm=True,
 
             # internal activation layers
             conv_activation='ReLU',
@@ -52,53 +53,51 @@ class ConvNetEncoder(nn.Module):
         channels = [input_channels] + (conv_channels or [])
         for i in range(1, len(channels)):
 
-            # add a convolution layer
+            # conv => maxpool => activation => batchnorm
             conv_sequence.append(nn.Conv2d(
                 in_channels=channels[i - 1],
                 out_channels=channels[i],
                 kernel_size=conv_kernel,
                 padding=int(conv_kernel // 2)  # keeps the size as 'same'
             ))
-
-            # add an activation  
-            conv_sequence.append(eval(f'nn.{conv_activation}()'))
-
-            # add maxpool
             if i < len(channels) - 1:
                 conv_sequence.append(nn.MaxPool2d(kernel_size=maxpool_kernel))
+            conv_sequence.append(eval(f'nn.{conv_activation}()'))
+            if batchnorm:
+                conv_sequence.append(nn.BatchNorm2d(channels[i]))
 
-        # determine the number of outputs from the convolution layers
-        self._conv_out = input_height * input_width * channels[-1]
+        # size of image after downscaling
         h, w = input_height, input_width
         for i in range(len(conv_channels or []) - 1):
             h, w = h // maxpool_kernel, w // maxpool_kernel
-        self._conv_out = h * w * channels[-1]
+        self.h_out = h
+        self.w_out = w
 
-        # linear layers
+        # list linear layers
         dense_sequence = []
-        widths = [self._conv_out] + (dense_layers or [])
+        widths = channels[-1:] + (dense_layers or [])
         for i in range(1, len(widths)):
             # add a dense layer and activation
             dense_sequence.append(nn.Linear(widths[i - 1], widths[i]))
             dense_sequence.append(eval(f'nn.{dense_activation}()'))
         # create the last layer
-        dense_sequence.append(nn.Linear(widths[-1], output_dim))
+        dense_sequence.append(nn.Linear(widths[-1], output_channels))
 
         # put layers in sequential objects for use in self.forward()
         self.conv = nn.Sequential(*conv_sequence)
         self.dense = nn.Sequential(*dense_sequence)
+        self.flatten = nn.Flatten(start_dim=0, end_dim=2)
 
     def forward(self, inputs):
-        # format for convolution
+        # format to (N,C,H,W) format for convolutions
         x = inputs.view(-1, self._channels, self._height, self._width)
-
-        # apply convolutions if any
         x = self.conv(x)
-
-        # format for dense layers
-        x = x.view(-1, self._conv_out)
-
-        # apply dense layers if any
-        outputs = self.dense(x)
-
+        
+        # format to (N,H,W,C) format for dense layers
+        x = x.permute(0, 2, 3, 1)
+        x = self.dense(x)
+        
+        # format to (N*H*W,C) format for quantization
+        outputs = self.flatten(x)
+        
         return outputs
