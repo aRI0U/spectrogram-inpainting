@@ -100,10 +100,11 @@ class NSynthVQVAE(BaseVQVAE):
         self.tracker.start()
 
     def training_step(self, batch, batch_idx):
-        x_hat, codes, q_loss = self(batch, training=True)
+        x = batch.to(self.device)
+        x_hat, codes, q_loss = self(x, training=True)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, batch)
+        rec_loss = F.mse_loss(x_hat, x)
         loss = rec_loss + q_loss
 
         # logging
@@ -114,10 +115,11 @@ class NSynthVQVAE(BaseVQVAE):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x_hat, codes, q_loss = self(batch, training=False)
+        x = batch.to(self.device)
+        x_hat, codes, q_loss = self(x, training=False)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, batch)
+        rec_loss = F.mse_loss(x_hat, x)
         loss = rec_loss + q_loss
 
         # logging
@@ -130,7 +132,7 @@ class NSynthVQVAE(BaseVQVAE):
     def training_epoch_end(self, outputs):
         self.tracker.record()
 
-        x = next(iter(self.train_dataloader()))[:8]
+        x = next(iter(self.train_dataloader()))[:8].to(self.device)
         x_hat, codes, _ = self(x)
 
         # display images in tensorboard
@@ -166,7 +168,7 @@ class NSynthVQVAE(BaseVQVAE):
         )
 
     def validation_epoch_end(self, outputs):
-        x = next(iter(self.val_dataloader()))[:8]
+        x = next(iter(self.val_dataloader()))[:8].to(self.device)
         x_hat, codes, _ = self(x)
 
         # display images in tensorboard

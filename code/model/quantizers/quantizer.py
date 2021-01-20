@@ -20,8 +20,8 @@ class VectorQuantizer(nn.Module):
         self.codewords_dim = codewords_dim
 
         self.codebook_restart = codebook_restart
-        self.sum_codebook_usage = torch.ones(self.num_codewords) / self.num_codewords
-        self.number_samples = torch.ones(self.num_codewords, dtype=torch.int64)
+        self.register_buffer('sum_codebook_usage', torch.ones(self.num_codewords) / self.num_codewords)
+        self.register_buffer('number_samples', torch.ones(self.num_codewords, dtype=torch.int64))
 
         self.codewords = nn.Parameter(
             torch.randn(self.num_codewords, self.codewords_dim),
@@ -57,7 +57,8 @@ class VectorQuantizer(nn.Module):
 
         encoding_indices = torch.argmin(distances, dim=1)
 
-        self.update_codebook_usage(encoding_indices)
+        if training and self.codebook_restart:
+            self.update_codebook_usage(encoding_indices)
 
         # quantized[i,j] = self.codewords[encoding_indices[i,j], j]
         quantized = torch.gather(
@@ -91,7 +92,7 @@ class VectorQuantizer(nn.Module):
         """
         self.number_samples += 1
         bins, counts = torch.unique(encoding_indices, return_counts=True)
-        usage = torch.zeros(self.num_codewords)
+        usage = torch.zeros(self.num_codewords, device=bins.device)
         usage[bins] = counts / len(encoding_indices)
 
         self.sum_codebook_usage += usage

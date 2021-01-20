@@ -2,6 +2,9 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
+# magic trick to make it work on ircam cluster
+sys.path.insert(1, '/fast-1/alain-atiam/site-packages')
+
 # https://github.com/pytorch/audio/issues/903
 import torchaudio
 if sys.platform.startswith("win"):
@@ -88,6 +91,7 @@ logger = pl.loggers.TensorBoardLogger(logs_path, name=exp_name, version=0, log_g
 
 # initialize Pytorch Lightning trainer
 trainer = pl.Trainer(
+    gpus=args.gpus,
     callbacks=[checkpoint_callback, progress_callback],
     logger=logger,
     max_epochs=args.max_epochs

@@ -72,6 +72,8 @@ class Parser:
         hparams.add_argument('--win_length', type=int, default=512,
                              help='number of timesteps per audio sample')
 
+        diverse.add_argument('--gpus', default=None)
+
         args.train = not args.test
 
         # CONDITIONAL ARGUMENTS

@@ -24,6 +24,7 @@ class CO2Tracker:
         # GPU-specific constants
         self._cuda = torch.cuda.is_available()
         if self._cuda:
+            nvidia_smi.nvmlInit()
             self._handle = nvidia_smi.nvmlDeviceGetHandleByIndex(0)
 
         # energy consumption constants
