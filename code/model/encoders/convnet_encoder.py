@@ -23,10 +23,10 @@ class ConvNetEncoder(nn.Module):
             # the dimension of the input pictures and
             # of the expected output latent variable
             # (default values correspond to MNIST)
-            input_height=28,
-            input_width=28,
-            input_channels=1,
-            output_channels=50,
+            in_height=28,
+            in_width=28,
+            in_channels=1,
+            out_channels=50,
 
             # architecture of the conv and dense layers
             conv_channels=None,
@@ -43,14 +43,13 @@ class ConvNetEncoder(nn.Module):
         # nn.Module instantiate
         super().__init__()
 
-        # store useful parameters
-        self._height = input_height
-        self._width = input_width
-        self._channels = input_channels
+        # store function parameters
+        kwargs = {key: value for key, value in locals().items() if key not in ['self', '__class__']}
+        vars(self).update(kwargs)
 
         # list convolution layers
         conv_sequence = []
-        channels = [input_channels] + (conv_channels or [])
+        channels = [in_channels] + (conv_channels or [])
         for i in range(1, len(channels)):
 
             # conv => maxpool => activation => batchnorm
@@ -67,11 +66,11 @@ class ConvNetEncoder(nn.Module):
                 conv_sequence.append(nn.BatchNorm2d(channels[i]))
 
         # size of image after downscaling
-        h, w = input_height, input_width
-        for i in range(len(conv_channels or []) - 1):
+        h, w = in_height, in_width
+        for i in range(len(conv_channels) - 1):
             h, w = h // maxpool_kernel, w // maxpool_kernel
-        self.h_out = h
-        self.w_out = w
+        self.out_height = h
+        self.out_width = w
 
         # list linear layers
         dense_sequence = []
@@ -81,35 +80,35 @@ class ConvNetEncoder(nn.Module):
             dense_sequence.append(nn.Linear(widths[i - 1], widths[i]))
             dense_sequence.append(eval(f'nn.{dense_activation}()'))
         # create the last layer
-        dense_sequence.append(nn.Linear(widths[-1], output_channels))
+        dense_sequence.append(nn.Linear(widths[-1], out_channels))
 
         # put layers in sequential objects for use in self.forward()
         self.conv = nn.Sequential(*conv_sequence)
         self.dense = nn.Sequential(*dense_sequence)
-        # self.flatten = nn.Flatten(start_dim=0, end_dim=2)
+
 
     def forward(self, inputs):
         r"""
+            Parameters
+            ----------
+            inputs (torch.Tensor): spectrogram to encode, shape (batch_size, in_channels, in_height, in_width)
 
-        Parameters
-        ----------
-        inputs (torch.Tensor): spectrogram to encode, shape (batch_size, input_channels, input_height, input_width)
-
-        Returns
-        -------
-        torch.Tensor: latent image, shape (batch_size, ???, ???, output_channels)
-        TODO: what is output height, width
+            Returns
+            -------
+            torch.Tensor: latent image, shape (batch_size, out_height, out_width, out_channels)
         """
+
         # format to (N,C,H,W) format for convolutions
-        # TODO: reshape seems to be redundant
-        x = inputs.view(-1, self._channels, self._height, self._width)
+        x = inputs.view(-1, self.in_channels, self.in_height, self.in_width)
         x = self.conv(x)
         
         # format to (N,H,W,C) format for dense layers
         x = x.permute(0, 2, 3, 1)
         x = self.dense(x)
-        #
-        # # format to (N*H*W,C) format for quantization
-        # outputs = self.flatten(x)
         
-        return x
+        # format to (N*H*W,C) format for quantization
+        # outputs = x.view(-1, self.out_channels)
+        outputs = x
+
+        return outputs
+
