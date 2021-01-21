@@ -35,30 +35,6 @@ class MNISTVQVAE(BaseVQVAE):
         # for graph logging
         self.example_input_array = torch.randn(1, 1, 32, 32)
 
-    def forward(self, x):
-        r"""Forward pass of VQ-VAE
-
-        Parameters
-        ----------
-        x (torch.FloatTensor): input, shape (B, C, H, W)
-
-        Returns
-        -------
-        x_hat (torch.FloatTensor): reconstructed input, shape (B, C, H, W)
-        codes (torch.LongTensor): corresponding codes, shape (???)
-        q_loss (torch.FloatTensor): quantization loss, shape (1)
-        """
-        # 1. encode and put channels last
-        z_e = self.encoder(x).permute(0, 2, 3, 1).contiguous()
-
-        # 2. quantize
-        z_q, codes, q_loss = self.quantizer(z_e)
-
-        # 3. put channels first and decode
-        x_hat = self.decoder(z_q.permute(0, 3, 1, 2))
-
-        return x_hat, codes, q_loss
-
     def training_epoch_end(self, outputs):
         x, _ = next(iter(self.train_dataloader()))
         x_hat, codes, _ = self(x)

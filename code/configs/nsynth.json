@@ -8,6 +8,7 @@
   "adam": {
     "lr": 1e-3
   },
-  "latent_dim": 16,
+  "latent_dim": 64,
+  "num_codewords": 32,
   "restarts": true
 }

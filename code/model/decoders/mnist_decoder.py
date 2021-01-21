@@ -28,7 +28,8 @@ class MNISTDecoder(nn.Module):
         -------
 
         """
-        x = self.conv1(inputs)
+        x = inputs.permute(0, 3, 1, 2)
+        x = self.conv1(x)
         x = self.activation(x)
         x = self.conv2(x)
         return x

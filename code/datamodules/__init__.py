@@ -1,2 +1,2 @@
-from .mnist import MNISTDataModule
+# from .mnist import MNISTDataModule
 from .nsynth import NSynthDataModule

@@ -65,31 +65,6 @@ class NSynthVQVAE(BaseVQVAE):
 
         print(self)
 
-    def forward(self, x, training=True):
-        r"""Forward pass of VQ-VAE
-
-        Parameters
-        ----------
-        x (torch.FloatTensor): batch of spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
-
-        Returns
-        -------
-        x_hat (torch.FloatTensor): reconstructed spectrograms, shape (batch_size, num_frequency_bins, num_timesteps)
-        codes (torch.LongTensor): encoding indices, shape (???)
-        q_loss (torch.FloatTensor): quantization loss, shape (1)
-        """
-        # TODO: improve this implementation
-        # 1. encode
-        z_e = self.encoder(x)
-
-        # 2. quantize
-        z_q, codes, q_loss = self.quantizer(z_e, training=training)
-
-        # 3. decode
-        x_hat = self.decoder(z_q)
-
-        return x_hat, codes, q_loss
-
     # %% engineering
     def on_train_start(self):
         self.tracker.start()
@@ -100,7 +75,7 @@ class NSynthVQVAE(BaseVQVAE):
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, x)
-        loss = rec_loss + q_loss
+        loss = rec_loss# + q_loss
 
         # logging
         self.log('Reconstruction loss/Training', rec_loss)
@@ -141,12 +116,12 @@ class NSynthVQVAE(BaseVQVAE):
         idx = torch.randint(0, 8, (1,))
         self.logger.experiment.add_audio(
             "Originals/Training",
-            self.inverse_transform(x[idx]).cpu().data,
+            (self.inverse_transform(x[idx]).cpu().data + 1) / 2,
             self.current_epoch
         )
         self.logger.experiment.add_audio(
             "Reconstructions/Training",
-            self.inverse_transform(x_hat[idx]).cpu().data,
+            (self.inverse_transform(x_hat[idx]).cpu().data + 1) / 2,
             self.current_epoch
         )
         
@@ -180,12 +155,12 @@ class NSynthVQVAE(BaseVQVAE):
         idx = torch.randint(0, 8, (1,))
         self.logger.experiment.add_audio(
             "Originals/Validation",
-            self.inverse_transform(x[idx]).cpu().data,
+            (self.inverse_transform(x[idx]).cpu().data + 1) / 2,
             self.current_epoch
         )
         self.logger.experiment.add_audio(
             "Reconstructions/Validation",
-            self.inverse_transform(x_hat[idx]).cpu().data,
+            (self.inverse_transform(x_hat[idx]).cpu().data + 1) / 2,
             self.current_epoch
         )
 
