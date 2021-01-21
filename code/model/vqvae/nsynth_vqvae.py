@@ -149,6 +149,9 @@ class NSynthVQVAE(BaseVQVAE):
             self.inverse_transform(x_hat[idx]).cpu().data,
             self.current_epoch
         )
+        
+        # save audio
+        torchaudio.save("output/training_{}.wav".format(idx),self.inverse_transform(x_hat[idx]),16e3)
 
         # display energy consumption
         self.logger.experiment.add_scalars(
@@ -185,6 +188,9 @@ class NSynthVQVAE(BaseVQVAE):
             self.inverse_transform(x_hat[idx]).cpu().data,
             self.current_epoch
         )
+
+        # save audio
+        torchaudio.save("output/validation_{}.wav".format(idx),self.inverse_transform(x_hat[idx]),16e3)
 
         # log hyperparameters
         metrics_log = {'val_loss': torch.stack(outputs).mean()}
