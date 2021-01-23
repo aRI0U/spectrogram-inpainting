@@ -5,6 +5,8 @@ import sys
 # magic trick to make it work on ircam machines
 sys.path.insert(1, '/fast-1/alain-atiam/site-packages')
 
+import torch
+
 # https://github.com/pytorch/audio/issues/903
 import torchaudio
 if sys.platform.startswith("win"):
@@ -23,6 +25,15 @@ from utils.progress import ProgressBar
 parser = Parser()
 args = parser.parse_args()
 
+# %% DEBUG
+if args.debug:
+    # reproducibility
+    torch.manual_seed(0)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    # traceback of inf and nan in gradients
+    torch.autograd.set_detect_anomaly(True)
 
 # %% DATASET
 # loading dataset using Pytorch Lightning datamodules
