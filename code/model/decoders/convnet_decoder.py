@@ -78,19 +78,18 @@ class ConvNetDecoder(nn.Module):
 
         # list linear layers
         dense_sequence = []
-        widths = [in_channels] + (dense_layers or [])
+        widths = [in_channels] + (dense_layers or []) + [channels[0]]
         for i in range(1, len(widths)):
             # add a dense layer and activation
             dense_sequence.append(nn.Linear(widths[i - 1], widths[i]))
             dense_sequence.append(eval(f'nn.{dense_activation}()'))
-        # create the last layer
-        dense_sequence.append(nn.Linear(widths[-1], channels[0]))
+        # # create the last layer
+        # dense_sequence.append(nn.Linear(widths[-1], channels[0]))
         
         # put layers in sequential objects for use in self.forward()
         self.conv = nn.Sequential(*conv_sequence)
         self.dense = nn.Sequential(*dense_sequence)
 
-    
     @classmethod
     def mirror(cls, encoder):
         """ 
@@ -114,8 +113,7 @@ class ConvNetDecoder(nn.Module):
             dense_activation=encoder.dense_activation,
             conv_activation=encoder.conv_activation
         )
-    
-    
+
     def forward(self, inputs):
         r"""
             Parameters

@@ -10,5 +10,5 @@
   },
   "latent_dim": 64,
   "num_codewords": 32,
-  "restarts": true
+  "restarts": false
 }

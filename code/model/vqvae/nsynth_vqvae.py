@@ -4,9 +4,8 @@ import torchaudio.transforms
 
 import model.encoders as encoders
 import model.decoders as decoders
-from model.quantizers import VectorQuantizer
+import model.quantizers as quantizers
 from model.vqvae.base_vqvae import BaseVQVAE
-from utils.co2_tracker import CO2Tracker
 
 
 class NSynthVQVAE(BaseVQVAE):
@@ -17,7 +16,9 @@ class NSynthVQVAE(BaseVQVAE):
                  z_dim,
                  num_codewords,
                  commitment_cost,
-                 codebook_restart,
+                 codebook_restart=False,
+                 use_ema=False,
+                 ema_decay=None,
                  **optimizer_kwargs):
         r"""
 
@@ -29,6 +30,9 @@ class NSynthVQVAE(BaseVQVAE):
         z_dim (int)
         num_codewords (int)
         commitment_cost (float)
+        codebook_restart (bool):
+        use_ema (bool):
+        ema_decay (Optional[float]):
         optimizer_kwargs (dict)
         """
         super(NSynthVQVAE, self).__init__(z_dim,
@@ -42,6 +46,9 @@ class NSynthVQVAE(BaseVQVAE):
         if architecture == 'basic':
             self.encoder = encoders.BasicEncoder(num_frequency_bins, num_timesteps, z_dim)
             self.decoder = decoders.BasicDecoder(num_frequency_bins, num_timesteps, z_dim)
+        elif architecture == 'mnist_like':
+            self.encoder = encoders.MNISTEncoder(1, z_dim)
+            self.decoder = decoders.MNISTDecoder(z_dim, 1)
         elif architecture == 'convnet':
             self.encoder = encoders.ConvNetEncoder(
                 in_height=num_frequency_bins,
@@ -52,30 +59,44 @@ class NSynthVQVAE(BaseVQVAE):
                 dense_layers=[16]
             )
             self.decoder = decoders.ConvNetDecoder.mirror(self.encoder)
+        elif architecture == 'convnet2':
+            self.encoder = encoders.ConvNetEncoder2(
+                in_channels=1,
+                out_channels=z_dim
+            )
+            self.decoder = decoders.ConvNetDecoder2(
+                in_channels=z_dim,
+                out_channels=1,
+                in_height=num_frequency_bins,
+                in_width=num_timesteps
+            )
         else:
             raise NotImplementedError(f"This architecture is not implemented yet: {architecture}")
 
-        self.quantizer = VectorQuantizer(num_codewords, z_dim, commitment_cost, codebook_restart)
+        if use_ema:
+            self.quantizer = quantizers.VectorQuantizerEMA(
+                num_codewords=num_codewords,
+                codewords_dim=z_dim,
+                commitment_cost=commitment_cost,
+                ema_decay=ema_decay,
+                codebook_restart=codebook_restart
+            )
+        else:
+            self.quantizer = quantizers.VectorQuantizer(num_codewords, z_dim, commitment_cost, codebook_restart)
 
         self.example_input_array = torch.randn(1, 1, num_frequency_bins, num_timesteps)
 
         self.inverse_transform = torchaudio.transforms.GriffinLim(n_fft=nfft, win_length=win_length, n_iter=512)
 
-        self.tracker = CO2Tracker()
-
-        print(self)
-
     # %% engineering
-    def on_train_start(self):
-        self.tracker.start()
-
     def training_step(self, batch, batch_idx):
         x = batch.to(self.device)
-        x_hat, codes, q_loss = self(x, training=True)
+        x_hat, codes, q_loss = self(x)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, x)
-        loss = rec_loss# + q_loss
+        # WARNING: temporary stuff
+        rec_loss = F.mse_loss(x_hat, x[..., :256, :248])
+        loss = rec_loss + q_loss
 
         # logging
         self.log('Reconstruction loss/Training', rec_loss)
@@ -86,10 +107,10 @@ class NSynthVQVAE(BaseVQVAE):
 
     def validation_step(self, batch, batch_idx):
         x = batch.to(self.device)
-        x_hat, codes, q_loss = self(x, training=False)
+        x_hat, codes, q_loss = self(x)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, x)
+        rec_loss = F.mse_loss(x_hat, x[..., :256, :248])
         loss = rec_loss + q_loss
 
         # logging
@@ -113,20 +134,8 @@ class NSynthVQVAE(BaseVQVAE):
         self.plot_codebook_usage(codes, training=True)
 
         # send audio
-        idx = torch.randint(0, 8, (1,))
-        self.logger.experiment.add_audio(
-            "Originals/Training",
-            (self.inverse_transform(x[idx]).cpu().data + 1) / 2,
-            self.current_epoch
-        )
-        self.logger.experiment.add_audio(
-            "Reconstructions/Training",
-            (self.inverse_transform(x_hat[idx]).cpu().data + 1) / 2,
-            self.current_epoch
-        )
-        
-        # save audio
-        torchaudio.save("output/training_{}.wav".format(idx),self.inverse_transform(x_hat[idx]),16e3)
+        idx = torch.randint(0, 8, ())
+        self.log_audio(x[idx], x_hat[idx], "Validation")
 
         # display energy consumption
         self.logger.experiment.add_scalars(
@@ -152,21 +161,42 @@ class NSynthVQVAE(BaseVQVAE):
         self.plot_codebook_usage(codes, training=False)
 
         # send audio
-        idx = torch.randint(0, 8, (1,))
-        self.logger.experiment.add_audio(
-            "Originals/Validation",
-            (self.inverse_transform(x[idx]).cpu().data + 1) / 2,
-            self.current_epoch
-        )
-        self.logger.experiment.add_audio(
-            "Reconstructions/Validation",
-            (self.inverse_transform(x_hat[idx]).cpu().data + 1) / 2,
-            self.current_epoch
-        )
-
-        # save audio
-        torchaudio.save("output/validation_{}.wav".format(idx),self.inverse_transform(x_hat[idx]),16e3)
+        idx = torch.randint(0, 8, ())
+        self.log_audio(x[idx], x_hat[idx], "Validation")
 
         # log hyperparameters
         metrics_log = {'val_loss': torch.stack(outputs).mean()}
         self.logger.log_hyperparams(self.hparams, metrics=metrics_log)
+
+    def log_audio(self, original, reconstruction, step, rate=16000):
+        original_audio = self.inverse_transform(original).cpu()
+        x = torch.zeros_like(original)
+        x[:, :256, :248] = reconstruction
+        reconstructed_audio = self.inverse_transform(x).cpu()
+
+        # send to tensorboard
+        self.logger.experiment.add_audio(
+            f"Originals/{step}",
+            original_audio,
+            self.current_epoch
+        )
+        self.logger.experiment.add_audio(
+            f"Reconstructions/{step}",
+            reconstructed_audio,
+            self.current_epoch
+        )
+
+        # save file on disk
+        audio_data = torch.cat(
+            (
+                original_audio,
+                torch.zeros(original_audio.size(0), rate),  # 1 second of silence
+                reconstructed_audio
+            ),
+            dim=1
+        )
+        torchaudio.save(
+            f"{self.logger.root_dir}/audio/{step}-{self.current_epoch:02d}.wav",
+            audio_data,
+            rate
+        )

@@ -58,12 +58,14 @@ if args.architecture == 'mnist':
 else:
     model = vqvae.NSynthVQVAE(
         args.architecture,
-        args.nfft,
-        args.win_length,
-        args.latent_dim,
-        args.num_codewords,
-        args.commitment_cost,
-        args.restarts,
+        nfft=args.nfft,
+        win_length=args.win_length,
+        z_dim=args.latent_dim,
+        num_codewords=args.num_codewords,
+        commitment_cost=args.commitment_cost,
+        codebook_restart=args.restarts,
+        use_ema=args.ema,
+        ema_decay=args.ema_decay,
         **args.adam
     )
 
@@ -74,6 +76,9 @@ if args.load_model:
 else:
     exp_name = args.dataset_name + '/' + datetime.now().strftime('%Y-%m-%d_%H-%M')
     parser.save(args, logs_path / exp_name)
+
+audio_path = logs_path / exp_name / 'audio'
+audio_path.mkdir(parents=True, exist_ok=True)
 
 # %% CALLBACKS
 checkpoint_callback = pl.callbacks.ModelCheckpoint(

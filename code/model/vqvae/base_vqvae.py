@@ -8,6 +8,8 @@ import torch.nn.functional as F
 
 import pytorch_lightning as pl
 
+from utils.co2_tracker import CO2Tracker
+
 
 class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
     def __init__(self,
@@ -27,7 +29,9 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         super(BaseVQVAE, self).__init__()
         self.save_hyperparameters()
 
-    def forward(self, x, training=True):
+        self.tracker = CO2Tracker()
+
+    def forward(self, x):
         r"""Forward pass of VQ-VAE
 
         Parameters
@@ -44,7 +48,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         z_e = self.encoder(x)
 
         # 2. quantize
-        z_q, codes, q_loss = self.quantizer(z_e, training=training)
+        z_q, codes, q_loss = self.quantizer(z_e)
 
         # 3. decode
         x_hat = self.decoder(z_q)
@@ -53,7 +57,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
-        x_hat, codes, q_loss = self(x, training=True)
+        x_hat, codes, q_loss = self(x)
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, x)
@@ -68,7 +72,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
 
     def validation_step(self, batch, batch_idx):
         x, _ = batch
-        x_hat, codes, q_loss = self(x, training=False)
+        x_hat, codes, q_loss = self(x)
 
         # compute loss
         rec_loss = F.mse_loss(x_hat, x)
@@ -80,6 +84,9 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         self.log('Loss/Validation', loss)
 
         return loss
+
+    def on_train_start(self):
+        self.tracker.start()
 
     def on_fit_start(self):
         metric_placeholder = {'val_loss': float('inf')}

@@ -30,7 +30,9 @@ class VectorQuantizer(nn.Module):
 
         self.commitment_cost = commitment_cost
 
-    def forward(self, inputs, training=False):
+        self.initialized = False
+
+    def forward(self, inputs):
         r"""
 
         Parameters
@@ -46,8 +48,13 @@ class VectorQuantizer(nn.Module):
         inputs_shape = inputs.size()
         flat_inputs = inputs.view(-1, self.codewords_dim)
 
-        if training and self.codebook_restart:
-            self.restart_unused_codes(flat_inputs)
+        if self.training:
+            if not self.initialized:
+                print('init', flat_inputs.shape)
+                self.initialize_codes(flat_inputs)
+                # self.initialized = True
+            if self.codebook_restart:
+                self.restart_unused_codes(flat_inputs)
 
         # compute pairwise distances (https://discuss.pytorch.org/t/efficient-distance-matrix-computation/9065/6)
         distances = torch.pow(
@@ -57,7 +64,7 @@ class VectorQuantizer(nn.Module):
 
         encoding_indices = torch.argmin(distances, dim=1)
 
-        if training and self.codebook_restart:
+        if self.training and self.codebook_restart:
             self.update_codebook_usage(encoding_indices)
 
         # quantized[i,j] = self.codewords[encoding_indices[i,j], j]
@@ -71,8 +78,8 @@ class VectorQuantizer(nn.Module):
         quantized = inputs + (quantized - inputs).detach()
 
         # quantization loss
-        quantizing_loss = F.mse_loss(quantized.detach(), inputs)
-        commitment_loss = F.mse_loss(quantized, inputs.detach())
+        quantizing_loss = F.mse_loss(quantized, inputs.detach())
+        commitment_loss = F.mse_loss(quantized.detach(), inputs)
         loss = quantizing_loss + self.commitment_cost * commitment_loss
 
         encoding_indices = encoding_indices.view(inputs_shape[:-1])
@@ -96,6 +103,12 @@ class VectorQuantizer(nn.Module):
         usage[bins] = counts / len(encoding_indices)
 
         self.sum_codebook_usage += usage
+
+    def initialize_codes(self, encoder_outputs):
+        random_indices = torch.randperm(len(encoder_outputs))[:self.num_codewords]
+        # self.codewords.data[:] = encoder_outputs[random_indices]
+        print(self.codewords.sum().cpu().item(), self.codewords.min().cpu().item(), self.codewords.max().cpu().item())
+        # self.codewords.grad = None  # torch.zeros_like(self.codewords.grad, requires_grad=True)
 
     def restart_unused_codes(self, encoder_outputs):
         r"""
