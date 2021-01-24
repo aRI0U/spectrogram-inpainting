@@ -58,6 +58,8 @@ class Parser:
                              help='use Exponential Moving Averages for updating latent embeddings')
         network.add_argument('--ema_decay', type=float, default=0.95,
                              help='smoothness coefficient for EMA updates')
+        network.add_argument('--normalize', action='store_true',
+                             help='normalize spectrograms before feeding them to the network')
         network.add_argument('--restarts', action='store_true',
                              help='resample latent vectors when they are not used enough')
 
@@ -74,7 +76,8 @@ class Parser:
         hparams.add_argument('--win_length', type=int, default=512,
                              help='number of timesteps per audio sample')
 
-        diverse.add_argument('--gpus', default=None)
+        diverse.add_argument('--gpus', type=int, nargs='*',
+                             help='GPUs the model is loaded on')
 
         args.train = not args.test
 

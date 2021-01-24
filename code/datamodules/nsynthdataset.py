@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 
 
 class NSynthDataset(Dataset):
-    def __init__(self, data_dir, nfft, win_length):
+    def __init__(self, data_dir, nfft, win_length, normalize_spectrograms=False):
         r"""
 
         Parameters
@@ -13,12 +13,14 @@ class NSynthDataset(Dataset):
         data_dir (pathlib.Path):
         nfft (int):
         win_length (int):
+        normalize_spectrograms (bool):
         """
         self.data_dir = data_dir
 
         self.transform = torchaudio.transforms.Spectrogram(
             n_fft=nfft,
-            win_length=win_length
+            win_length=win_length,
+            normalized=normalize_spectrograms
         )
 
         with open(self.data_dir / "examples.json") as f:

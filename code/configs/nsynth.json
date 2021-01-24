@@ -1,14 +1,16 @@
 {
   "dataset_name": "NSynth",
   "dl_kwargs": {
-    "batch_size": 32,
+    "batch_size": 30,
     "num_workers": 4
   },
   "architecture": "convnet",
+  "ema": true,
+  "ema_decay": 0.95,
+  "restarts": true,
   "adam": {
-    "lr": 1e-3
+    "lr": 1e-6
   },
   "latent_dim": 64,
-  "num_codewords": 32,
-  "restarts": false
+  "num_codewords": 31
 }

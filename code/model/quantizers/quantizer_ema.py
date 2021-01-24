@@ -73,6 +73,9 @@ class VectorQuantizerEMA(nn.Module):
         if self.training:
             self.update_codebook_ema(encoding_indices, flat_inputs)
 
+        # magic trick to copy gradients from inputs
+        quantized = inputs + (quantized - inputs).detach()
+
         # quantization loss
         commitment_loss = F.mse_loss(quantized.detach(), inputs)
         loss = self.commitment_cost * commitment_loss
@@ -114,10 +117,10 @@ class VectorQuantizerEMA(nn.Module):
         self.codewords = unnormalized_codewords / smoothed_cluster_sizes
 
         # DEBUG:
-        unused = codebook_usage == 0
-        num_unused = unused.sum().item()
-        if num_unused > 0:
-            print("unused codes", *torch.arange(self.num_codewords)[unused].cpu().numpy())
+        # unused = codebook_usage == 0
+        # num_unused = unused.sum().item()
+        # if num_unused > 0:
+        #     print("unused codes:", *torch.arange(self.num_codewords)[unused].cpu().numpy())
 
     def initialize_codes(self, inputs):
         r"""Initialize codebook with outputs of the encoder
@@ -137,13 +140,13 @@ class VectorQuantizerEMA(nn.Module):
         ----------
         inputs (torch.Tensor): flattened outputs of the encoder, shape (N, codewords_dim)
         """
-        to_restart = self.smoothed_codebook_usage < 0.5 / self.num_codewords
+        to_restart = self.smoothed_codebook_usage < 0.1 / self.num_codewords
 
         self.smoothed_codebook_usage[to_restart] = 1 / self.num_codewords
 
         num_to_restart = to_restart.sum().item()
         if num_to_restart > 0:
-            print("restarting codes", *torch.arange(self.num_codewords)[to_restart].cpu().numpy())
+            # print("restarting codes", *torch.arange(self.num_codewords)[to_restart].cpu().numpy())
 
             indices_new_codes = torch.randperm(len(inputs))[:num_to_restart]
 

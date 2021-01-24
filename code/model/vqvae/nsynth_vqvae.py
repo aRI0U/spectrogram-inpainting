@@ -19,6 +19,7 @@ class NSynthVQVAE(BaseVQVAE):
                  codebook_restart=False,
                  use_ema=False,
                  ema_decay=None,
+                 gpus=[],
                  **optimizer_kwargs):
         r"""
 
@@ -38,6 +39,7 @@ class NSynthVQVAE(BaseVQVAE):
         super(NSynthVQVAE, self).__init__(z_dim,
                                           num_codewords,
                                           commitment_cost,
+                                          gpus,
                                           **optimizer_kwargs)
 
         num_frequency_bins = nfft // 2 + 1
@@ -55,8 +57,8 @@ class NSynthVQVAE(BaseVQVAE):
                 in_width=num_timesteps,
                 in_channels=1,
                 out_channels=z_dim,
-                conv_channels=[4, 8, 16],
-                dense_layers=[16]
+                conv_channels=[4, 8, 16, 32],
+                dense_layers=None
             )
             self.decoder = decoders.ConvNetDecoder.mirror(self.encoder)
         elif architecture == 'convnet2':
@@ -95,7 +97,7 @@ class NSynthVQVAE(BaseVQVAE):
 
         # compute loss
         # WARNING: temporary stuff
-        rec_loss = F.mse_loss(x_hat, x[..., :256, :248])
+        rec_loss = F.mse_loss(x_hat, x)
         loss = rec_loss + q_loss
 
         # logging
@@ -110,7 +112,7 @@ class NSynthVQVAE(BaseVQVAE):
         x_hat, codes, q_loss = self(x)
 
         # compute loss
-        rec_loss = F.mse_loss(x_hat, x[..., :256, :248])
+        rec_loss = F.mse_loss(x_hat, x)
         loss = rec_loss + q_loss
 
         # logging
@@ -135,7 +137,7 @@ class NSynthVQVAE(BaseVQVAE):
 
         # send audio
         idx = torch.randint(0, 8, ())
-        self.log_audio(x[idx], x_hat[idx], "Validation")
+        self.log_audio(x[idx], x_hat[idx], "Training")
 
         # display energy consumption
         self.logger.experiment.add_scalars(
@@ -170,19 +172,21 @@ class NSynthVQVAE(BaseVQVAE):
 
     def log_audio(self, original, reconstruction, step, rate=16000):
         original_audio = self.inverse_transform(original).cpu()
-        x = torch.zeros_like(original)
-        x[:, :256, :248] = reconstruction
-        reconstructed_audio = self.inverse_transform(x).cpu()
+        reconstructed_audio = self.inverse_transform(reconstruction).cpu()
+
+        # normalize volumes
+        original_audio /= original_audio.max()
+        reconstructed_audio /= reconstructed_audio.max()
 
         # send to tensorboard
         self.logger.experiment.add_audio(
             f"Originals/{step}",
-            original_audio,
+            original_audio.clip(-1, 1),
             self.current_epoch
         )
         self.logger.experiment.add_audio(
             f"Reconstructions/{step}",
-            reconstructed_audio,
+            reconstructed_audio.clip(-1, 1),
             self.current_epoch
         )
 

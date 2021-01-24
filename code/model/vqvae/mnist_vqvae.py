@@ -12,6 +12,7 @@ class MNISTVQVAE(BaseVQVAE):
                  z_dim,
                  num_codewords,
                  commitment_cost,
+                 gpus,
                  **optimizer_kwargs):
         r"""
 
@@ -25,6 +26,7 @@ class MNISTVQVAE(BaseVQVAE):
         super(MNISTVQVAE, self).__init__(z_dim,
                                          num_codewords,
                                          commitment_cost,
+                                         gpus,
                                          **optimizer_kwargs)
 
         self.encoder = encoders.MNISTEncoder(1, z_dim)

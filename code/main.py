@@ -49,6 +49,7 @@ elif args.dataset_name == "NSynth":
         data_dir,
         args.nfft,
         args.win_length,
+        normalize_spectrograms=args.normalize,
         **args.dl_kwargs
     )
 
@@ -64,6 +65,7 @@ if args.architecture == 'mnist':
         args.latent_dim,
         args.num_codewords,
         args.commitment_cost,
+        args.gpus,
         **args.adam
     )
 else:
@@ -77,6 +79,7 @@ else:
         codebook_restart=args.restarts,
         use_ema=args.ema,
         ema_decay=args.ema_decay,
+        gpus=args.gpus,
         **args.adam
     )
 

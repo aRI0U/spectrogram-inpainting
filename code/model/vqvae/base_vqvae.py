@@ -16,6 +16,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
                  z_dim,
                  num_codewords,
                  commitment_cost,
+                 gpus,
                  lr=1e-3):
         r"""
 
@@ -29,7 +30,7 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
         super(BaseVQVAE, self).__init__()
         self.save_hyperparameters()
 
-        self.tracker = CO2Tracker()
+        self.tracker = CO2Tracker(gpus)
 
     def forward(self, x):
         r"""Forward pass of VQ-VAE
@@ -85,12 +86,12 @@ class BaseVQVAE(pl.LightningModule, metaclass=abc.ABCMeta):
 
         return loss
 
-    def on_train_start(self):
-        self.tracker.start()
-
     def on_fit_start(self):
         metric_placeholder = {'val_loss': float('inf')}
         self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
+
+    def on_train_epoch_start(self):
+        self.tracker.start()
 
     def plot_codebook_usage(self, codes, training=False):
         r"""Computes the histogram of codebook usage and displays it to TensorBoard"""
