@@ -57,8 +57,8 @@ class NSynthVQVAE(BaseVQVAE):
                 in_width=num_timesteps,
                 in_channels=1,
                 out_channels=z_dim,
-                conv_channels=[4, 8, 16, 32],
-                dense_layers=None
+                conv_channels=[8, 16, 32, 64],
+                dense_layers=[64]
             )
             self.decoder = decoders.ConvNetDecoder.mirror(self.encoder)
         elif architecture == 'convnet2':

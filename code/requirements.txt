@@ -1,7 +1,8 @@
+matplotlib>=3.2.2
 requests>=2.22.0
+tqdm>=4.50.2
 torch>=1.7.1
 torchaudio>=0.7.2
 torchvision>=0.8.2
-tqdm>=4.50.2
 pytorch-lightning>=1.0.8
-matplotlib>=3.2.2
+nvidia_ml_py3>=7.352.0

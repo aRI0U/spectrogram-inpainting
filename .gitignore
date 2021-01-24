@@ -1,6 +1,7 @@
 code/.idea
 code/datasets
 code/logs
+code/results
 **/*.pyc
 **/.ipynb_checkpoints
 **/*.DS_Store

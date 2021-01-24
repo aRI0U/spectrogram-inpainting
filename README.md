@@ -33,6 +33,8 @@ This project has been realized for the Musical Machine Learning course of ATIAM 
 
 Experiments have been conducted on images ([MNIST](http://yann.lecun.com/exdb/mnist/)) and audio ([NSynth](https://magenta.tensorflow.org/nsynth)).
 
+There is no need to run any separate script to download/extract datasets. They will be downloaded the first time you run the main Python program.
+
 ### MNIST
 
 In order to train a model on [MNIST](http://yann.lecun.com/exdb/mnist/), just type the following:
@@ -65,23 +67,30 @@ tensorboard --logdir logs
 
 and open http://localhost:6006 in a web browser.
 
+
+
+## Repository organization
+
+This repository has the following architecture:
+
+- `code` contains all our implementation
+  - `code/configs` contains some JSON files with the command line arguments we used for our experiments.
+  - `code/datamodules` contains everything related to data (automatic downloading and extracting, data transforms, batch loading...)
+  - `code/datasets` is the place datasets are stored (not in the repo). For example, the validation set of Nsynth will be stored in `code/datasets/NSynth/valid`, and so on.
+  - `code/experiments` contains notebooks we used for experiments. In particular, the naive Bayes classifier we used for spectrogram inpainting is located in this folder.
+  - `code/model` contains all neural network architectures : encoders, decoders, quantizers and main VQ-VAE pipeline
+  - `code/tests` contains some tests
+  - `code/utils` contains several utilities (parser, CO2 tracker, etc.)
+- `docs` contains the subject of this project
+- `report` contains the source code of our report
+
 ## TODOs
 
-- environnemental stuff
 - audio in tensorboard
-- model qui marche
-- transformers pour génération
-
-- codebook restarts
+- finish debugging model
+- (linear) transformers pour génération
 - use phase
+- try other transforms than basic spectrogram (mel...)
 
-
-
-## TODOs qu'on fera jamais
-
-- linear transformers
-- EMA
-- resnet pour l'encoder/decoder
+- use resnet for encoder/decoder
 - VQ-VAE2
-- transformations mieux que juste spectrogram
-- multithreading pour le co2 tracker
